@@ -7,6 +7,7 @@
     <string name="navigation_drawer_close">Close Navigation Drawer</string>
     <string-array name="navigation_drawer_array">
         <item>Terminal</item>
+        <item>Settings</item>
     </string-array>
 
     <!-- Terminal -->

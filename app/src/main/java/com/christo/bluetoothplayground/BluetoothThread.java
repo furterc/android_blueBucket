@@ -69,7 +69,7 @@ class BluetoothThread {
 
         Message msg = new Message();
         msg.obj = "connected";
-        msg.arg1 = Communication.HANDLER_ARG1_UI;
+        msg.arg1 = Communication.HANDLER_ARG1_CONNECT;
         mHandler.sendMessage(msg);
     }
 
@@ -89,13 +89,13 @@ class BluetoothThread {
         }
         Message msg = new Message();
         msg.obj = "disconnect";
-        msg.arg1 = Communication.HANDLER_ARG1_UI;
+        msg.arg1 = Communication.HANDLER_ARG1_CONNECT;
         mHandler.sendMessage(msg);
 
         Log.i(TAG, "socket disconnected");
     }
 
-    public void sendPacket(final byte[] bytes) {
+    void sendPacket(final byte[] bytes) {
         Log.i(TAG, "SENDing Shit");
 
         if (btConnected.get()) {
@@ -179,7 +179,7 @@ class BluetoothThread {
                 }
                 Message msg = new Message();
                 msg.obj = "failed";
-                msg.arg1 = Communication.HANDLER_ARG1_UI;
+                msg.arg1 = Communication.HANDLER_ARG1_CONNECT;
                 mHandler.sendMessage(msg);
                 return;
             }
@@ -240,13 +240,14 @@ class BluetoothThread {
                         byteList.add(buffer[0]);
                     } else {
                         byte[] outBytes = new byte[byteList.size()];
+
                         for (int tel = 0; tel < byteList.size(); tel++)
                             outBytes[tel] = byteList.get(tel);
 
                         byteList.clear();
                         Message msg = new Message();
                         msg.obj = outBytes;
-                        msg.arg1 = 0;
+                        msg.arg1 = Communication.HANDLER_ARG1_TERM;
                         mHandler.sendMessage(msg);
 
                         Log.i("BBluetooth Receive", "BT + " + new String(outBytes));

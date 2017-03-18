@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -20,18 +21,25 @@ import java.util.ArrayList;
 public class TerminalFragment extends Fragment {
 
     private static final String TAG = TerminalFragment.class.getSimpleName();
-    ArrayList<String> mList =  new ArrayList<>();
+    ArrayList<String> mList = new ArrayList<>();
     ArrayAdapter<String> mArrayAdapter;
 
+    private Context mContext;
 
     private Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
-            final String string = (String) message.obj;
-            if (string == null)
+            if (message.obj == null)
                 return false;
 
-            mList.add("bt: " + string);
+            final String msgObj = (String) message.obj;
+            if (message.arg1 == Communication.HANDLER_ARG1_CONNECT && "disconnect".equals(msgObj)) {
+                Toast.makeText(mContext, "Device disconnected.", Toast.LENGTH_SHORT).show();
+                getActivity().finish();
+                return false;
+            }
+
+            mList.add("bt: " + msgObj);
             mArrayAdapter.notifyDataSetChanged();
             return false;
         }
@@ -48,7 +56,7 @@ public class TerminalFragment extends Fragment {
 
     @Override
     public void onDestroy() {
-        Communication.getInstance().setCurrentHandler(null, Communication.HANDLER_ARG1_UI);
+        Communication.getInstance().setCurrentHandler(null, Communication.HANDLER_ARG1_CONNECT);
         super.onDestroy();
     }
 
@@ -56,7 +64,7 @@ public class TerminalFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View mView = inflater.inflate(R.layout.fragment_terminal, container, false);
-        final Context mContext = mView.getContext();
+        mContext = mView.getContext();
 
         Communication.getInstance().setCurrentHandler(mHandler, Communication.HANDLER_ARG1_TERM);
 
@@ -78,9 +86,6 @@ public class TerminalFragment extends Fragment {
                 editText.setText("");
             }
         });
-
         return mView;
     }
-
-
 }

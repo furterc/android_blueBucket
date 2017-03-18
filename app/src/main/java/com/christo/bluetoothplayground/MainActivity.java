@@ -12,6 +12,7 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -35,43 +36,45 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog loadingDialog = null;
 
 
+
 //    BlueCommands blue = new BlueCommands();
 
     /* Handler for the Bluetooth thread */
-    private Handler mBluetoothHandler = new Handler() {
+    private final Handler mBluetoothHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             /* This checks that the device connected successfully */
-            if (msg.arg1 == Communication.HANDLER_ARG1_UI) {
-                String msgObj = msg.obj.toString();
-
-                if (msgObj == null)
+            if (msg.arg1 == Communication.HANDLER_ARG1_CONNECT) {
+//                final String msgObj = new String((byte[])msg.obj);
+                final String msgObj = (String) msg.obj;
+                if (msg.obj == null)
                     return;
 
-                switch (msgObj)
-                {
-                    case "connected":
-                        if (loadingDialog != null && loadingDialog.isShowing())
-                            loadingDialog.dismiss();
-                    break;
+                switch (msg.arg1) {
+                    case Communication.HANDLER_ARG1_CONNECT:
+                        final String msgString = (String) msg.obj;
+                        if ("connected".equals(msgString)) {
+                            if (loadingDialog != null && loadingDialog.isShowing())
+                                loadingDialog.dismiss();
+                        } else if ("disconnect".equals(msgString)) {
+                            if (loadingDialog != null && loadingDialog.isShowing())
+                                loadingDialog.dismiss();
+                            Log.e(TAG, "disconnected!");
+                            Toast.makeText(getApplicationContext(), "Unable to connect to device", Toast.LENGTH_SHORT).show();
+                            finish();
+                        } else if ("failed".equals(msgString)) {
+                            if (loadingDialog != null && loadingDialog.isShowing())
+                                loadingDialog.dismiss();
+                            Log.e(TAG, "failed!");
+                            Toast.makeText(getApplicationContext(), "Device disconnected", Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
 
-                    case "disconnected":
-                        if (loadingDialog != null && loadingDialog.isShowing())
-                            loadingDialog.dismiss();
-                        Toast.makeText(getApplicationContext(), "Unable to connect to device", Toast.LENGTH_SHORT).show();
-                        finish();
                         break;
 
-                    case "failed":
-                        if (loadingDialog != null && loadingDialog.isShowing())
-                            loadingDialog.dismiss();
-                        Toast.makeText(getApplicationContext(), "Device disconnected", Toast.LENGTH_SHORT).show();
-                        finish();
-                        break;
-
-                    default:
-                        break;
                 }
+
+
             }
         }
     };
@@ -133,13 +136,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-private class DrawerItemClickListener implements AdapterView.OnItemClickListener {
-    @Override
-    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-        selectItem(i);
-    }
+    private class DrawerItemClickListener implements AdapterView.OnItemClickListener {
+        @Override
+        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+            selectItem(i);
+        }
 
-}
+    }
 
     private void selectItem(int position) {
         /* Update the main content by replacing fragments */
@@ -147,6 +150,9 @@ private class DrawerItemClickListener implements AdapterView.OnItemClickListener
         switch (position) {
             case 0:
                 fragment = new TerminalFragment();
+                break;
+            case 1:
+                fragment = new SettingsFragment();
                 break;
             default:
                 fragment = new TerminalFragment();

@@ -42,8 +42,8 @@ class BlueCommands {
         if (crc == bytes[3]) {
             Log.i("LOG", "valid frame!");
             Packet mPacket = new Packet();
-            mPacket.setType(bytes[0]);
-            mPacket.setTag(bytes[1]);
+//            mPacket.setType(bytes[0]);
+//            mPacket.setTag(bytes[1]);
             mPacket.setData(bytes[2]);
             mPacket.dbgPrint();
             return mPacket;

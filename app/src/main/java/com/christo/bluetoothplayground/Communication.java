@@ -19,8 +19,9 @@ class Communication {
     private BluetoothThread mBluetoothThread;
 
 
-    static final int HANDLER_ARG1_UI = 1;
+    static final int HANDLER_ARG1_CONNECT = 1;
     static final int HANDLER_ARG1_TERM = 2;
+    static final int HANDLER_ARG1_SETTINGS = 3;
 
     private int mCurrArg1 = 0;
     private Handler mCurrHandler;
@@ -34,9 +35,9 @@ class Communication {
         @Override
         public boolean handleMessage(Message msg) {
             /* This checks that the device connected successfully */
-            if (msg.arg1 == HANDLER_ARG1_UI) {
+            if (msg.arg1 == HANDLER_ARG1_CONNECT) {
                 Message mainMessage = new Message();
-                mainMessage.arg1 = HANDLER_ARG1_UI;
+                mainMessage.arg1 = HANDLER_ARG1_CONNECT;
                 mainMessage.obj = msg.obj;
                 mMainHandler.sendMessage(mainMessage);
                 return false;
@@ -57,6 +58,11 @@ class Communication {
                         mCurrHandler.sendMessage(termMessage);
                         break;
 
+                    case HANDLER_ARG1_SETTINGS:
+                        Message settingMessage = new Message();
+                        settingMessage.obj = data;
+                        settingMessage.arg1 = HANDLER_ARG1_SETTINGS;
+                        mCurrHandler.sendMessage(settingMessage);
                 }
             }
                 return false;
@@ -92,4 +98,11 @@ class Communication {
     void write(final byte[] bytes) {
         mBluetoothThread.sendPacket(bytes);
     }
+
+    void sendPacket(Packet packet)
+    {
+        mBluetoothThread.sendPacket(packet.toBytes());
+        mBluetoothThread.sendPacket("\n".getBytes());
+    }
+
 }
