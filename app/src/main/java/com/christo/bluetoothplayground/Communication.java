@@ -3,6 +3,10 @@ package com.christo.bluetoothplayground;
 import android.bluetooth.BluetoothDevice;
 import android.os.Handler;
 import android.os.Message;
+import android.util.Log;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 
 
 class Communication {
@@ -34,6 +38,10 @@ class Communication {
     private Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message msg) {
+
+            Log.i(TAG, "mCurrArg1: " + mCurrArg1);
+
+
             /* This checks that the device connected successfully */
             if (msg.arg1 == HANDLER_ARG1_CONNECT) {
                 Message mainMessage = new Message();
@@ -46,10 +54,6 @@ class Communication {
             byte[] data = (byte[]) msg.obj;
 
             if (data.length > 0) {
-
-                if (mCurrArg1 == 0)
-                    return false;
-
                 switch (mCurrArg1) {
                     case HANDLER_ARG1_TERM:
                         Message termMessage = new Message();
@@ -69,19 +73,6 @@ class Communication {
         }
     });
 
-
-//                Packet packet = blue.receive(data);
-//                if (packet != null) {
-//                    switch (packet.getType()) {
-//                        case Packet.TYPE_GET:
-//                            Log.i(TAG, String.format("PACKET GET\ntag: 0x%02X\ndata: 0x%02X", packet.getTag(), packet.getData()));
-//                            break;
-//
-//                            case Packet.TAG_SET:
-//                                Log.i(TAG, String.format("PACKET S\ntag: 0x%02X\ndata: 0x%02X", packet.getTag(), packet.getData()));
-//                                break;
-
-
     void setMainHandler(Handler mainHandler) {
         this.mMainHandler = mainHandler;
     }
@@ -95,14 +86,24 @@ class Communication {
         mBluetoothThread.connect(bluetoothDevice);
     }
 
+    void disconnect()
+    {
+    mBluetoothThread = null;
+    }
+
     void write(final byte[] bytes) {
         mBluetoothThread.sendPacket(bytes);
     }
 
     void sendPacket(Packet packet)
     {
-        mBluetoothThread.sendPacket(packet.toBytes());
-        mBluetoothThread.sendPacket("\n".getBytes());
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            outputStream.write(packet.toBytes());
+            outputStream.write("\n".getBytes());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        mBluetoothThread.sendPacket(outputStream.toByteArray());
     }
-
 }

@@ -2,12 +2,20 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.christo.bluetoothplayground.SettingsFragment">
+    tools:context="com.christo.bluetoothplayground.SettingsFragment"
+    android:orientation="vertical">
 
     <Button
         android:id="@+id/button_settings_setTime"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="setTime"/>
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:max="255" />
 
 </LinearLayout>

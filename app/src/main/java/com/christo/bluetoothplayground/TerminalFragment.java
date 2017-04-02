@@ -32,13 +32,14 @@ public class TerminalFragment extends Fragment {
             if (message.obj == null)
                 return false;
 
-            final String msgObj = (String) message.obj;
-            if (message.arg1 == Communication.HANDLER_ARG1_CONNECT && "disconnect".equals(msgObj)) {
+
+            if (message.arg1 == Communication.HANDLER_ARG1_CONNECT && "disconnect".equals((String) message.obj)) {
                 Toast.makeText(mContext, "Device disconnected.", Toast.LENGTH_SHORT).show();
                 getActivity().finish();
                 return false;
             }
 
+            final String msgObj = (String) message.obj;
             mList.add("bt: " + msgObj);
             mArrayAdapter.notifyDataSetChanged();
             return false;

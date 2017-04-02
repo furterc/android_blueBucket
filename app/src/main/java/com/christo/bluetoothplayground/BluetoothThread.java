@@ -96,57 +96,26 @@ class BluetoothThread {
     }
 
     void sendPacket(final byte[] bytes) {
-        Log.i(TAG, "SENDing Shit");
-
         if (btConnected.get()) {
-            Thread thread = new Thread(new Runnable() {
+            new Thread(new Runnable() {
                 public void run() {
                     try {
-
-
-
-                        for (int i = 0; i < (bytes.length / stepSize) + 1; i++) {
-                            if ((i + 1) * stepSize < bytes.length) {
-                                mConnectedThread.write(bytes, i * stepSize, stepSize);
-                                mConnectedThread.flush();
-                                try {
-                                    Log.i(TAG, "send i = " + i);
-                                    Thread.currentThread();
-                                    Thread.sleep(100);
-                                } catch (InterruptedException e) {
-                                    Log.e(TAG, "Interrupted Exception", e);
-//                                    e.printStackTrace();
-                                }
-                            } else {
-                                Log.i(TAG, i * stepSize + " : " + (bytes.length - (i) * stepSize));
-                                mConnectedThread.write(bytes, i * stepSize, bytes.length - (i) * stepSize);
-                                mConnectedThread.flush();
-                            }
-                        }
                         mConnectedThread.flush();
-                        String bla = "";
+                        mConnectedThread.write(bytes, 0, bytes.length);
+                        mConnectedThread.flush();
 
-                        for (byte sbyte : bytes) {
-                            bla = bla + " " + String.format("%02X", sbyte);
-                        }
-                        Log.i("BBluetooth Send", "BT size:" + bytes.length + " + " + bla);
-                        Log.i("MSG_ERR", "BT size:" + bytes.length + " + ");
+                        Log.v(TAG, "bt_send size: " + bytes.length + " data: " + Utilities.byteArrayToHex(bytes));
                     } catch (Exception e) {
-                        Log.i("Error SEND", e.getMessage());
+                        Log.e(TAG, "bt_send_error: ", e);
                     }
-
                 }
-            });
-            thread.setPriority(Thread.MAX_PRIORITY);
-            thread.start();
+            }).start();
         }
     }
-
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     private class ConnectThread extends Thread {
         private final BluetoothSocket mmSocket;
-
 
         ConnectThread(BluetoothDevice device) {
             BluetoothSocket tmp = null;
@@ -221,7 +190,7 @@ class BluetoothThread {
         }
 
         public void run() {
-            Log.i(TAG, "BEGIN mConnectedThread");
+            Log.i(TAG, "mConnectedThread run()");
 
             ArrayList<Byte> byteList = new ArrayList<>();
 
@@ -230,12 +199,8 @@ class BluetoothThread {
             while (btConnected.get()) {
                 try {
                     /* Read the InputStream into buffer */
-
                     final int read = mmInStream.read(buffer, 0, 1);
-
-
-                    Log.i("HI", "data: " + String.format("0x%02X", buffer[0]));
-
+//                    Log.i(TAG, "bt_data_in: " + String.format("0x%02X", buffer[0]));
                     if (buffer[0] != 0x0D) {
                         byteList.add(buffer[0]);
                     } else {
@@ -250,7 +215,7 @@ class BluetoothThread {
                         msg.arg1 = Communication.HANDLER_ARG1_TERM;
                         mHandler.sendMessage(msg);
 
-                        Log.i("BBluetooth Receive", "BT + " + new String(outBytes));
+                        Log.i(TAG, "bt_valid_data: " + new String(outBytes) + " hex: " + Utilities.byteArrayToHex(outBytes));
                     }
                 } catch (IOException e) {
                     Log.e(TAG, "disconnected", e);
@@ -280,6 +245,7 @@ class BluetoothThread {
                 Log.e(TAG, "Exception during write", e);
             }
         }
+
         void flush() {
             try {
                 mmOutStream.flush();

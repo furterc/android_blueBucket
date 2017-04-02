@@ -14,7 +14,9 @@ class Packet {
     enum TAG {
         BT_HOURS,
         BT_MINUTES,
-        BT_SECONDS
+        BT_SECONDS,
+        BT_KITCH_TOP,
+        BT_KITCH_BOT
     }
 
     private byte mType;
@@ -93,6 +95,22 @@ class Packet {
     byte[] toBytes()
     {
         return new byte[]{mType, mTag, mData, mCrc};
+    }
+
+    Packet fromBytes(byte[] bytes)
+    {
+        if (bytes.length != 4)
+            return null;
+
+        Packet packet = new Packet(TYPE.values()[bytes[0]], TAG.values()[bytes[1]], bytes[2]);
+        if (packet.mCrc == bytes[3])
+        {
+            Log.i("Packet", "Good CRC!");
+            return packet;
+        } else
+            Log.e("Packet", "Bad CRC!");
+
+        return null;
     }
 
 

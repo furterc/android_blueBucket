@@ -8,7 +8,14 @@
     <string-array name="navigation_drawer_array">
         <item>Terminal</item>
         <item>Settings</item>
+        <item>Lights</item>
     </string-array>
+
+    <string-array name="ligts_array">
+        <item>Kitchen Top</item>
+        <item>Kitchen Bot</item>
+    </string-array>
+
 
     <!-- Terminal -->
     <string name="fragment_terminal_Send">Send</string>

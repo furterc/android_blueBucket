@@ -135,6 +135,10 @@ public class MainActivity extends AppCompatActivity {
             selectItem(0);
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 
     private class DrawerItemClickListener implements AdapterView.OnItemClickListener {
         @Override
@@ -153,6 +157,9 @@ public class MainActivity extends AppCompatActivity {
                 break;
             case 1:
                 fragment = new SettingsFragment();
+                break;
+            case 2:
+                fragment = new LightsFragment();
                 break;
             default:
                 fragment = new TerminalFragment();

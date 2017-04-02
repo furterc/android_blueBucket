@@ -8,4 +8,19 @@ public class Utilities {
         return sb.toString();
     }
 
+    static int fromByte(byte bytes) {
+        return bytes & 0xFF;
+    }
+
+    static int fromByteArray(byte[] bytes) {
+
+//        int len = bytes.length;
+        if (bytes.length == 1) return bytes[0] & 0xFF;
+
+        if (bytes.length == 4)
+            return bytes[0] << 24 | (bytes[1] & 0xFF) << 16 | (bytes[2] & 0xFF) << 8 | (bytes[3] & 0xFF);
+
+        return 0;
+    }
+
 }
