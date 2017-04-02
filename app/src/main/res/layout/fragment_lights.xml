@@ -5,55 +5,16 @@
     tools:context="com.christo.bluetoothplayground.SettingsFragment"
     android:orientation="vertical">
 
-    <LinearLayout
+    <ListView
+        android:id="@+id/listView_LightFragment"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="0dp"
+        android:layout_weight="5"/>
 
-        <TextView
-            android:id="@+id/textView_lights0"
-            android:layout_weight="5"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/editText_lights0"
-            android:layout_width="80dp"
-            android:inputType="number"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <SeekBar
-        android:id="@+id/seekBar_lights0"
+    <Button
+        android:id="@+id/button_LightFragment"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:max="255"
-        android:paddingBottom="10dp"/>
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <TextView
-            android:id="@+id/textView_lights1"
-            android:layout_weight="5"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content" />
-
-        <EditText
-            android:id="@+id/editText_lights1"
-            android:layout_width="80dp"
-            android:inputType="number"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
-
-    <SeekBar
-        android:id="@+id/seekBar_lights1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:paddingTop="10dp"
-        android:max="255"
-        android:paddingBottom="10dp"/>
-
+        android:text="refresh"/>
 </LinearLayout>
 

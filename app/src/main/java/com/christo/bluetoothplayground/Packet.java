@@ -16,7 +16,9 @@ class Packet {
         BT_MINUTES,
         BT_SECONDS,
         BT_KITCH_TOP,
-        BT_KITCH_BOT
+        BT_KITCH_BOT,
+        BT_STUDY_TOP,
+        BT_STUDY_BOT
     }
 
     private byte mType;

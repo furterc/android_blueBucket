@@ -18,10 +18,6 @@ class LightsAdapter extends BaseAdapter
     private Context mContext;
     private LayoutInflater mLayoutInflater;
 
-    private TextView textView;
-    private EditText editText;
-    private SeekBar seekBar;
-
     LightsAdapter(Context context, ArrayList<LightsClass> lights)
     {
         mContext = context;
@@ -44,15 +40,8 @@ class LightsAdapter extends BaseAdapter
         return i;
     }
 
-    void updateValues(int i)
-    {
-        textView.setText(mLights.get(i).getName());
-        editText.setText(String.valueOf(i));
-        seekBar.setProgress(mLights.get(i).getDuty());
-    }
-
     @Override
-    public View getView(int i, View view, ViewGroup viewGroup) {
+    public View getView(final int i, View view, ViewGroup viewGroup) {
 
         if (view == null)
         {
@@ -60,19 +49,20 @@ class LightsAdapter extends BaseAdapter
             view = layoutInflater.inflate(R.layout.custom_row_lights, viewGroup, false);
         }
 
-        textView = (TextView) view.findViewById(R.id.textView_crLights);
-        editText = (EditText) view.findViewById(R.id.editText_crDuty);
-        seekBar = (SeekBar) view.findViewById(R.id.seekBar_crLights);
+        final TextView textView = (TextView) view.findViewById(R.id.textView_crLightsHeading);
+        final TextView textViewVal = (TextView) view.findViewById(R.id.textView_crLightsDuty);
+        final SeekBar seekBar = (SeekBar) view.findViewById(R.id.seekBar_crLights);
 
-
-        updateValues(i);
+        textView.setText(mLights.get(i).getName());
+        textViewVal.setText(String.valueOf(mLights.get(i).getDuty()));
+        seekBar.setProgress(mLights.get(i).getDuty());
 
         seekBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             int val;
             @Override
-            public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
-                val = i;
-                editText.setText(String.valueOf(i));
+            public void onProgressChanged(SeekBar seekBar, int v, boolean b) {
+                val = v;
+                textViewVal.setText(String.valueOf(v));
             }
 
             @Override
@@ -82,11 +72,7 @@ class LightsAdapter extends BaseAdapter
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                Packet packet = new Packet();
-                packet.setType(Packet.TYPE.TYPE_SET);
-                packet.setTag(Packet.TAG.BT_KITCH_TOP);
-                packet.setData((byte)val);
-                Communication.getInstance().sendPacket(packet);
+                mLights.get(i).update(i,val);
             }
         });
 

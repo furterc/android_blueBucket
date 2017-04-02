@@ -7,6 +7,8 @@ import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
@@ -34,15 +36,13 @@ public class SettingsFragment extends Fragment {
                 return false;
             }
 
-            Log.i("Settings", Utilities.byteArrayToHex((byte[])message.obj));
+            Log.i("Settings", Utilities.byteArrayToHex((byte[]) message.obj));
             Packet packet = new Packet();
-            packet = packet.fromBytes((byte[])message.obj);
+            packet = packet.fromBytes((byte[]) message.obj);
 
-            if (packet!=null)
-            {
+            if (packet != null) {
                 packet.dbgPrint();
-                switch (packet.getType())
-                {
+                switch (packet.getType()) {
                     case TYPE_SET:
                         Log.i("Settings", String.format("Data rec: 0x%02X", packet.getData()));
                         seekBar.setProgress(Utilities.fromByte(packet.getData()));
@@ -59,17 +59,18 @@ public class SettingsFragment extends Fragment {
         // Required empty public constructor
     }
 
-        @Override
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        }
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         final View mView = inflater.inflate(R.layout.fragment_settings, container, false);
 
+        setHasOptionsMenu(true);
         mContext = mView.getContext();
         Communication.getInstance().setCurrentHandler(mHandler, Communication.HANDLER_ARG1_SETTINGS);
 
@@ -80,7 +81,7 @@ public class SettingsFragment extends Fragment {
                 Packet packet = new Packet();
                 packet.setType(Packet.TYPE.TYPE_SET);
                 packet.setTag(Packet.TAG.BT_KITCH_TOP);
-                packet.setData((byte)i);
+                packet.setData((byte) i);
                 Communication.getInstance().sendPacket(packet);
             }
 
@@ -98,15 +99,14 @@ public class SettingsFragment extends Fragment {
         final Button buttonSetTime = (Button) mView.findViewById(R.id.button_settings_setTime);
         buttonSetTime.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onClick(View view)
-            {
+            public void onClick(View view) {
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
                         Packet packet = new Packet();
                         packet.setType(Packet.TYPE.TYPE_SET);
                         packet.setTag(Packet.TAG.BT_HOURS);
-                        packet.setData((byte)Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
+                        packet.setData((byte) Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
                         packet.dbgPrint();
                         Communication.getInstance().sendPacket(packet);
 
@@ -118,7 +118,7 @@ public class SettingsFragment extends Fragment {
 
                         packet.setType(Packet.TYPE.TYPE_SET);
                         packet.setTag(Packet.TAG.BT_MINUTES);
-                        packet.setData((byte)Calendar.getInstance().get(Calendar.MINUTE));
+                        packet.setData((byte) Calendar.getInstance().get(Calendar.MINUTE));
                         packet.dbgPrint();
                         Communication.getInstance().sendPacket(packet);
 
@@ -130,7 +130,7 @@ public class SettingsFragment extends Fragment {
 
                         packet.setType(Packet.TYPE.TYPE_SET);
                         packet.setTag(Packet.TAG.BT_SECONDS);
-                        packet.setData((byte)Calendar.getInstance().get(Calendar.SECOND));
+                        packet.setData((byte) Calendar.getInstance().get(Calendar.SECOND));
                         packet.dbgPrint();
                         Communication.getInstance().sendPacket(packet);
 
@@ -141,10 +141,9 @@ public class SettingsFragment extends Fragment {
             }
         });
 
-        Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_KITCH_TOP, (byte)0x00);
+        Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_KITCH_TOP, (byte) 0x00);
         Communication.getInstance().sendPacket(requestPacket);
 
         return mView;
     }
-
 }

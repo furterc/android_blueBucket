@@ -9,15 +9,15 @@
         android:layout_height="wrap_content">
 
         <TextView
-            android:id="@+id/textView_crLights"
+            android:id="@+id/textView_crLightsHeading"
             android:layout_weight="5"
             android:layout_width="0dp"
             android:layout_height="wrap_content" />
 
-        <EditText
-            android:id="@+id/editText_crDuty"
-            android:layout_width="80dp"
-            android:inputType="number"
+        <TextView
+            android:id="@+id/textView_crLightsDuty"
+            android:layout_width="40dp"
+            android:textAppearance="@style/TextAppearance.AppCompat.Large"
             android:layout_height="wrap_content" />
     </LinearLayout>
 

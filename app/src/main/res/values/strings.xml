@@ -14,6 +14,8 @@
     <string-array name="ligts_array">
         <item>Kitchen Top</item>
         <item>Kitchen Bot</item>
+        <item>Study Top</item>
+        <item>Study Bot</item>
     </string-array>
 
 
