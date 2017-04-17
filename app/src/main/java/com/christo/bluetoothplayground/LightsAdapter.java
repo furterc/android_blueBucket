@@ -63,6 +63,7 @@ class LightsAdapter extends BaseAdapter
             public void onProgressChanged(SeekBar seekBar, int v, boolean b) {
                 val = v;
                 textViewVal.setText(String.valueOf(v));
+                mLights.get(i).update(i,val);
             }
 
             @Override
@@ -72,7 +73,7 @@ class LightsAdapter extends BaseAdapter
 
             @Override
             public void onStopTrackingTouch(SeekBar seekBar) {
-                mLights.get(i).update(i,val);
+
             }
         });
 

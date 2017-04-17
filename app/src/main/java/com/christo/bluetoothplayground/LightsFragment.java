@@ -47,7 +47,7 @@ public class LightsFragment extends Fragment {
                 packet.dbgPrint();
                 switch (packet.getType()) {
                     case TYPE_SET:
-                        int i = Utilities.fromByte(packet.getTag()) - 3;
+                        int i = Utilities.fromByte(packet.getTagNum()) - 3;
                         mLightsArrayList.get(i).setDuty(Utilities.fromByte(packet.getData()));
                         mListAdapter.notifyDataSetChanged();
                         break;
@@ -106,28 +106,12 @@ public class LightsFragment extends Fragment {
                 Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_KITCH_TOP, (byte) 0x00);
                 Communication.getInstance().sendPacket(requestPacket);
 
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 requestPacket.setTag(Packet.TAG.BT_KITCH_BOT);
                 Communication.getInstance().sendPacket(requestPacket);
-
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
 
                 requestPacket.setTag(Packet.TAG.BT_STUDY_TOP);
                 Communication.getInstance().sendPacket(requestPacket);
 
-                try {
-                    Thread.sleep(50);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
                 requestPacket.setTag(Packet.TAG.BT_STUDY_BOT);
                 Communication.getInstance().sendPacket(requestPacket);
             }

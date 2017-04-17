@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     private ProgressDialog loadingDialog = null;
 
 
-
 //    BlueCommands blue = new BlueCommands();
 
     /* Handler for the Bluetooth thread */
@@ -45,8 +44,7 @@ public class MainActivity extends AppCompatActivity {
         public void handleMessage(Message msg) {
             /* This checks that the device connected successfully */
             if (msg.arg1 == Communication.HANDLER_ARG1_CONNECT) {
-//                final String msgObj = new String((byte[])msg.obj);
-                final String msgObj = (String) msg.obj;
+
                 if (msg.obj == null)
                     return;
 
@@ -56,25 +54,14 @@ public class MainActivity extends AppCompatActivity {
                         if ("connected".equals(msgString)) {
                             if (loadingDialog != null && loadingDialog.isShowing())
                                 loadingDialog.dismiss();
-                        } else if ("disconnect".equals(msgString)) {
+                        } else if ("disconnect".equals(msgString) || ("failed".equals(msgString))) {
                             if (loadingDialog != null && loadingDialog.isShowing())
                                 loadingDialog.dismiss();
-                            Log.e(TAG, "disconnected!");
-                            Toast.makeText(getApplicationContext(), "Unable to connect to device", Toast.LENGTH_SHORT).show();
-                            finish();
-                        } else if ("failed".equals(msgString)) {
-                            if (loadingDialog != null && loadingDialog.isShowing())
-                                loadingDialog.dismiss();
-                            Log.e(TAG, "failed!");
-                            Toast.makeText(getApplicationContext(), "Device disconnected", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Disconnected", Toast.LENGTH_SHORT).show();
                             finish();
                         }
-
                         break;
-
                 }
-
-
             }
         }
     };
@@ -84,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        loadingDialog = ProgressDialog.show(this, "Connected", "Please wait...", true, false);
+        loadingDialog = ProgressDialog.show(this, "Connecting", "Please wait...", true, false);
 
         Communication.getInstance().setMainHandler(mBluetoothHandler);
 
@@ -137,6 +124,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
+        Communication.getInstance().disconnect();
         super.onDestroy();
     }
 

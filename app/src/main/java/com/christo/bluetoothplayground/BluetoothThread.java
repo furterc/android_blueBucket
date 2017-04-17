@@ -11,6 +11,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -73,7 +75,7 @@ class BluetoothThread {
         mHandler.sendMessage(msg);
     }
 
-    private void disconnect() {
+    void disconnect() {
         btConnected.set(false);
 
          /* Cancel any thread that is currently attempting to make a connection */
@@ -101,7 +103,7 @@ class BluetoothThread {
                 public void run() {
                     try {
                         mConnectedThread.flush();
-                        mConnectedThread.write(bytes, 0, bytes.length);
+                        mConnectedThread.write(bytes);
                         mConnectedThread.flush();
 
                         Log.v(TAG, "bt_send size: " + bytes.length + " data: " + Utilities.byteArrayToHex(bytes));
@@ -112,6 +114,7 @@ class BluetoothThread {
             }).start();
         }
     }
+
 
     //////////////////////////////////////////////////////////////////////////////////////////////////////
     private class ConnectThread extends Thread {
@@ -170,11 +173,49 @@ class BluetoothThread {
         private final InputStream mmInStream;
         private final OutputStream mmOutStream;
 
+        private final Object mmSendObj = new Object();
+        final List<byte[]> mmSendList = new LinkedList<>();
+
         ConnectedThread(BluetoothSocket socket) {
             Log.d(TAG, "create ConnectedThread");
             mmSocket = socket;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
+
+
+            Thread sendShit = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    while(true)
+                    {
+                        synchronized (mmSendObj) {
+                            try {
+                                mmSendObj.wait();
+                            } catch (InterruptedException e) {
+                                e.printStackTrace();
+                            }
+
+                            while (!mmSendList.isEmpty())
+                            {
+                                byte buffer[] = mmSendList.remove(0);
+                                try {
+                                    mmOutStream.write(buffer, 0, buffer.length);
+                                } catch (IOException e) {
+                                    e.printStackTrace();
+                                }
+                                try {
+                                    Thread.sleep(120);
+                                } catch (InterruptedException e) {
+                                    e.printStackTrace();
+                                }
+                            }
+                        }
+                    }
+
+                }
+            });
+
+            sendShit.start();
 
             /* Get the BluetoothSocket input and output streams */
             try {
@@ -225,24 +266,11 @@ class BluetoothThread {
             }
         }
 
-        /**
-         * write to the connected OutStream
-         */
-//        public void write(byte[] buffer)
-//        {
-//            try
-//            {
-//                mmOutStream.write(buffer);
-//            } catch (IOException e)
-//            {
-//                Log.e(TAG, "Exception during write", e);
-//            }
-//        }
-        void write(byte[] buffer, int off, int len) {
-            try {
-                mmOutStream.write(buffer, off, len);
-            } catch (IOException e) {
-                Log.e(TAG, "Exception during write", e);
+        void write(byte[] buffer) {
+                mmSendList.add(buffer);
+            synchronized (mmSendObj)
+            {
+                mmSendObj.notify();
             }
         }
 

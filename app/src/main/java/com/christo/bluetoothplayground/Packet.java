@@ -18,7 +18,9 @@ class Packet {
         BT_KITCH_TOP,
         BT_KITCH_BOT,
         BT_STUDY_TOP,
-        BT_STUDY_BOT
+        BT_STUDY_BOT,
+        BT_ALARM_HOUR,
+        BT_ALARM_MINUTE
     }
 
     private byte mType;
@@ -31,6 +33,14 @@ class Packet {
         mType = (byte)type.ordinal();
         mTag = (byte)tag.ordinal();
         mData = data;
+        calcCrc();
+    }
+
+    Packet(TYPE type, TAG tag, int data)
+    {
+        mType = (byte)type.ordinal();
+        mTag = (byte)tag.ordinal();
+        mData = (byte)data;
         calcCrc();
     }
 
@@ -56,9 +66,15 @@ class Packet {
         calcCrc();
     }
 
-    public byte getTag() {
+    public byte getTagNum() {
         return mTag;
     }
+
+    public TAG getTag()
+    {
+        return TAG.values()[(int) mTag];
+    }
+
 
     public void setData(byte mmData) {
         this.mData = mmData;

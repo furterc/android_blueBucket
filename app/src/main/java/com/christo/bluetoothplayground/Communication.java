@@ -22,13 +22,14 @@ class Communication {
 
     private BluetoothThread mBluetoothThread;
 
-
     static final int HANDLER_ARG1_CONNECT = 1;
     static final int HANDLER_ARG1_TERM = 2;
     static final int HANDLER_ARG1_SETTINGS = 3;
 
     private int mCurrArg1 = 0;
     private Handler mCurrHandler;
+
+    private boolean mTerminalEnabled = false;
 
     private Communication() {
         mBluetoothThread = new BluetoothThread(mHandler);
@@ -40,7 +41,6 @@ class Communication {
         public boolean handleMessage(Message msg) {
 
             Log.i(TAG, "mCurrArg1: " + mCurrArg1);
-
 
             /* This checks that the device connected successfully */
             if (msg.arg1 == HANDLER_ARG1_CONNECT) {
@@ -69,12 +69,20 @@ class Communication {
                         mCurrHandler.sendMessage(settingMessage);
                 }
             }
-                return false;
+            return false;
         }
     });
 
     void setMainHandler(Handler mainHandler) {
         this.mMainHandler = mainHandler;
+    }
+
+    public void setTerminalEnabled(boolean enabled) {
+        this.mTerminalEnabled = enabled;
+    }
+
+    public boolean isTerminalEnabled() {
+        return mTerminalEnabled;
     }
 
     void setCurrentHandler(Handler currentHandler, int currentArg1) {
@@ -86,17 +94,21 @@ class Communication {
         mBluetoothThread.connect(bluetoothDevice);
     }
 
-    void disconnect()
-    {
-    mBluetoothThread = null;
+    void disconnect() {
+        mBluetoothThread.disconnect();
     }
 
     void write(final byte[] bytes) {
         mBluetoothThread.sendPacket(bytes);
     }
 
-    void sendPacket(Packet packet)
+    void requestPacket(Packet.TAG tag)
     {
+        Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, tag, (byte) 0x00);
+        Communication.getInstance().sendPacket(requestPacket);
+    }
+
+    void sendPacket(Packet packet) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         try {
             outputStream.write(packet.toBytes());
