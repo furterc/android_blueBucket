@@ -20,21 +20,15 @@ class BluetoothThread {
     private static final String TAG = "BluetoothThread";
 
     private Handler mHandler;      // Handler for messages in the main thread
-
     private ConnectThread mConnectThread;
     private ConnectedThread mConnectedThread;
-
     private BluetoothAdapter mBluetoothAdapter;
-
     private AtomicBoolean btConnected = new AtomicBoolean(false);
-    private int stepSize = 100;
 
-    // Constructor - make a new datagram mBluetoothSocket
     BluetoothThread(Handler handler) {
-//        mContext = currentContext;
         mHandler = handler;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-        Log.i(TAG, "BT + 1");
+        Log.i(TAG, "BluetoothThread()");
     }
 
     void connect(BluetoothDevice mBTDevice) {
@@ -132,7 +126,7 @@ class BluetoothThread {
         }
 
         public void run() {
-            Log.i(TAG, "BEGIN mConnectThread");
+            Log.i(TAG, "ConnectThread run()");
             setName("ConnectThread");
 
             /* Always cancel discovery, it will slow down a connection */
@@ -167,7 +161,6 @@ class BluetoothThread {
         }
     }
 
-    ///////////////////////////////////////////////////////////////////////////////////////////////////////
     private class ConnectedThread extends Thread {
         private final BluetoothSocket mmSocket;
         private final InputStream mmInStream;
@@ -177,17 +170,16 @@ class BluetoothThread {
         final List<byte[]> mmSendList = new LinkedList<>();
 
         ConnectedThread(BluetoothSocket socket) {
-            Log.d(TAG, "create ConnectedThread");
+            Log.d(TAG, "ConnectedThread()");
             mmSocket = socket;
             InputStream tmpIn = null;
             OutputStream tmpOut = null;
 
-
-            Thread sendShit = new Thread(new Runnable() {
+            //the sending thread
+            new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    while(true)
-                    {
+                    while (true) {
                         synchronized (mmSendObj) {
                             try {
                                 mmSendObj.wait();
@@ -195,8 +187,7 @@ class BluetoothThread {
                                 e.printStackTrace();
                             }
 
-                            while (!mmSendList.isEmpty())
-                            {
+                            while (!mmSendList.isEmpty()) {
                                 byte buffer[] = mmSendList.remove(0);
                                 try {
                                     mmOutStream.write(buffer, 0, buffer.length);
@@ -211,11 +202,8 @@ class BluetoothThread {
                             }
                         }
                     }
-
                 }
-            });
-
-            sendShit.start();
+            }).start();
 
             /* Get the BluetoothSocket input and output streams */
             try {
@@ -241,7 +229,6 @@ class BluetoothThread {
                 try {
                     /* Read the InputStream into buffer */
                     final int read = mmInStream.read(buffer, 0, 1);
-//                    Log.i(TAG, "bt_data_in: " + String.format("0x%02X", buffer[0]));
                     if (buffer[0] != 0x0D) {
                         byteList.add(buffer[0]);
                     } else {
@@ -253,7 +240,7 @@ class BluetoothThread {
                         byteList.clear();
                         Message msg = new Message();
                         msg.obj = outBytes;
-                        msg.arg1 = Communication.HANDLER_ARG1_TERM;
+                        msg.arg1 = Communication.HANDLER_BT_MSG;
                         mHandler.sendMessage(msg);
 
                         Log.i(TAG, "bt_valid_data: " + new String(outBytes) + " hex: " + Utilities.byteArrayToHex(outBytes));
@@ -267,9 +254,8 @@ class BluetoothThread {
         }
 
         void write(byte[] buffer) {
-                mmSendList.add(buffer);
-            synchronized (mmSendObj)
-            {
+            mmSendList.add(buffer);
+            synchronized (mmSendObj) {
                 mmSendObj.notify();
             }
         }
@@ -290,7 +276,4 @@ class BluetoothThread {
             }
         }
     }
-
-
 }
-

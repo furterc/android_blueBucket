@@ -1,12 +1,11 @@
 <resources>
-    <string name="app_name">BluetoothPlayground</string>
+    <string name="app_name">BlueBucket</string>
     <string name="button_discoverDevices">Discover Devices</string>
 
     <!-- Navigation Drawer Strings -->
     <string name="navigation_drawer_open">Open Navigation Drawer</string>
     <string name="navigation_drawer_close">Close Navigation Drawer</string>
     <string-array name="navigation_drawer_array">
-        <item>Terminal</item>
         <item>Settings</item>
         <item>Lights</item>
     </string-array>
@@ -18,15 +17,20 @@
         <item>Study Bot</item>
     </string-array>
 
+    <!-- Settings -->
+    <string name="textSettings_Time">Time:</string>
+    <string name="textSettings_TimeDefault">25:61:61</string>
+    <string name="textSettings_Alarm">Alarm:</string>
 
-    <!-- Terminal -->
-    <string name="fragment_terminal_Send">Send</string>
+
+    <string name="textSettings_Get">GET</string>
+    <string name="textSettings_Set">SET</string>
+
+
 
     <!--Back button dialog -->
     <string name="alertDialog_Title">Confirm</string>
     <string name="alertDialog_msgKeyActivity">Are you sure you want to close the Bluetooth connection?</string>
-    <string name="alertDialog_msgBluetoothActivity">"Are you sure you want to quit the application?"</string>
+    <string name="alertDialog_msgMainActivity">"Close Bluetooth connection?</string>
 
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

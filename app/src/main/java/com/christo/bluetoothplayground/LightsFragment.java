@@ -1,5 +1,6 @@
 package com.christo.bluetoothplayground;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,9 +21,11 @@ import java.util.ArrayList;
 
 public class LightsFragment extends Fragment {
 
-    static final String TAG = LightsFragment.class.getSimpleName();
+//    static final String TAG = LightsFragment.class.getSimpleName();
 
     private Context mContext;
+    private View mView;
+    private Handler mBTHandler;
 
     private ArrayList<LightsClass> mLightsArrayList = new ArrayList<>();
     private LightsAdapter mListAdapter;
@@ -33,25 +36,10 @@ public class LightsFragment extends Fragment {
             if (message.obj == null)
                 return false;
 
-            if (message.arg1 == Communication.HANDLER_ARG1_CONNECT && "disconnect".equals((String) message.obj)) {
+            if (message.arg1 == Communication.HANDLER_ARG1_CONNECT && "disconnect".equals(message.obj)) {
                 Toast.makeText(mContext, "Device disconnected.", Toast.LENGTH_SHORT).show();
                 getActivity().finish();
                 return false;
-            }
-
-            Log.i("Settings", Utilities.byteArrayToHex((byte[]) message.obj));
-            Packet packet = new Packet();
-            packet = packet.fromBytes((byte[]) message.obj);
-
-            if (packet != null) {
-                packet.dbgPrint();
-                switch (packet.getType()) {
-                    case TYPE_SET:
-                        int i = Utilities.fromByte(packet.getTagNum()) - 3;
-                        mLightsArrayList.get(i).setDuty(Utilities.fromByte(packet.getData()));
-                        mListAdapter.notifyDataSetChanged();
-                        break;
-                }
             }
 
             return false;
@@ -70,7 +58,7 @@ public class LightsFragment extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_lights, container, false);
+        mView = inflater.inflate(R.layout.fragment_lights, container, false);
 
         String[] lights = getResources().getStringArray(R.array.ligts_array);
         for (String light : lights) {
@@ -79,44 +67,62 @@ public class LightsFragment extends Fragment {
         }
 
         setHasOptionsMenu(true);
-        mContext = view.getContext();
-        Communication.getInstance().setCurrentHandler(mHandler, Communication.HANDLER_ARG1_SETTINGS);
-
-        ListView listView = (ListView) view.findViewById(R.id.listView_LightFragment);
-        mListAdapter = new LightsAdapter(getActivity().getBaseContext(), mLightsArrayList);
-        listView.setAdapter(mListAdapter);
+        mContext = mView.getContext();
+        MainActivity.setHandler(mHandler);
+        mBTHandler = MainActivity.getMainBTHandler();
 
         requestData();
 
-        Button button = (Button) view.findViewById(R.id.button_LightFragment);
+        ListView listView = (ListView) mView.findViewById(R.id.listView_LightFragment);
+        mListAdapter = new LightsAdapter(getActivity().getBaseContext(), mLightsArrayList);
+        listView.setAdapter(mListAdapter);
+
+        Button button = (Button) mView.findViewById(R.id.button_LightFragment);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Log.i(TAG, "refresh button clicked.");
                 requestData();
             }
         });
-        return view;
+
+        return mView;
     }
 
     void requestData() {
-        new Thread(new Runnable() {
+        final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating Data", "Please wait...", true, false);
+
+        mBTHandler.post(new Runnable() {
             @Override
             public void run() {
-                Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_KITCH_TOP, (byte) 0x00);
-                Communication.getInstance().sendPacket(requestPacket);
+                Packet.TAG tag = Packet.TAG.BT_KITCH_TOP;
+                updateLights(tag, Communication.getInstance().requestPacket(tag));
 
-                requestPacket.setTag(Packet.TAG.BT_KITCH_BOT);
-                Communication.getInstance().sendPacket(requestPacket);
+                tag = Packet.TAG.BT_KITCH_BOT;
+                updateLights(tag, Communication.getInstance().requestPacket(tag));
 
-                requestPacket.setTag(Packet.TAG.BT_STUDY_TOP);
-                Communication.getInstance().sendPacket(requestPacket);
+                tag = Packet.TAG.BT_STUDY_BOT;
+                updateLights(tag, Communication.getInstance().requestPacket(tag));
 
-                requestPacket.setTag(Packet.TAG.BT_STUDY_BOT);
-                Communication.getInstance().sendPacket(requestPacket);
+                tag = Packet.TAG.BT_STUDY_TOP;
+                updateLights(tag, Communication.getInstance().requestPacket(tag));
+
+                progressDialog.dismiss();
             }
-        }).start();
+        });
     }
+
+    public void updateLights(final Packet.TAG tag, final int duty)
+    {
+        mView.post(new Runnable() {
+            @Override
+            public void run() {
+                int i = tag.ordinal() - 3;
+                mLightsArrayList.get(i).setDuty(duty);
+                mListAdapter.notifyDataSetChanged();
+            }
+        });
+    }
+
 
     @Override
     public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
@@ -134,5 +140,4 @@ public class LightsFragment extends Fragment {
         }
         return super.onOptionsItemSelected(item);
     }
-
 }

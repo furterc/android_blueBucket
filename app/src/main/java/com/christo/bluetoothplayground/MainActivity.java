@@ -1,10 +1,15 @@
 package com.christo.bluetoothplayground;
 
+import android.app.AlertDialog;
 import android.app.ProgressDialog;
 import android.bluetooth.BluetoothDevice;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.HandlerThread;
+import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
@@ -12,17 +17,13 @@ import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
 
 
 public class MainActivity extends AppCompatActivity {
-
-    static final String TAG = MainActivity.class.getSimpleName();
 
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
@@ -33,38 +34,46 @@ public class MainActivity extends AppCompatActivity {
     private String[] mNavigationEntries;
 
     public static FragmentManager mFragmentManager;
-    private ProgressDialog loadingDialog = null;
+
+    private HandlerThread mMainBTHandlerThread = null;
+    private static Handler mMainBTHandler;
+
+    static ProgressDialog loadingDialog = null;
 
 
-//    BlueCommands blue = new BlueCommands();
-
-    /* Handler for the Bluetooth thread */
-    private final Handler mBluetoothHandler = new Handler() {
+    private static Handler  mHandler = new Handler(new Handler.Callback() {
         @Override
-        public void handleMessage(Message msg) {
-            /* This checks that the device connected successfully */
-            if (msg.arg1 == Communication.HANDLER_ARG1_CONNECT) {
+        public boolean handleMessage(Message message) {
+            if (message.arg1 == Communication.HANDLER_ARG1_CONNECT) {
+                if (loadingDialog != null && loadingDialog.isShowing())
+                    loadingDialog.dismiss();
 
-                if (msg.obj == null)
-                    return;
-
-                switch (msg.arg1) {
-                    case Communication.HANDLER_ARG1_CONNECT:
-                        final String msgString = (String) msg.obj;
-                        if ("connected".equals(msgString)) {
-                            if (loadingDialog != null && loadingDialog.isShowing())
-                                loadingDialog.dismiss();
-                        } else if ("disconnect".equals(msgString) || ("failed".equals(msgString))) {
-                            if (loadingDialog != null && loadingDialog.isShowing())
-                                loadingDialog.dismiss();
-                            Toast.makeText(getApplicationContext(), "Disconnected", Toast.LENGTH_SHORT).show();
-                            finish();
-                        }
-                        break;
-                }
-            }
+//                if ("connected".equals((String) message.obj)) {
+////                    Toast.makeText(, "Connected.", Toast.LENGTH_SHORT).show();
+//                    return false;
+//                }
+//
+//                if ("disconnect".equals((String) message.obj)) {
+////                    Toast.makeText(mContext, "Device disconnected.", Toast.LENGTH_SHORT).show();
+////                    getActivity().finish();
+//                    return false;
+//                }
+ }
+            return false;
         }
-    };
+    });
+
+    public static Handler getMainBTHandler() {
+        return mMainBTHandler;
+    }
+
+    public static void setHandler(Handler mHandler) {
+        MainActivity.mHandler = mHandler;
+    }
+
+    public static Handler getHandler() {
+        return mHandler;
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,10 +82,12 @@ public class MainActivity extends AppCompatActivity {
 
         loadingDialog = ProgressDialog.show(this, "Connecting", "Please wait...", true, false);
 
-        Communication.getInstance().setMainHandler(mBluetoothHandler);
-
         final BluetoothDevice mBluetoothDevice = getIntent().getExtras().getParcelable("btDevice");
-        Communication.getInstance().connect(mBluetoothDevice);
+
+        mMainBTHandlerThread = new HandlerThread("mainBTThread");
+        mMainBTHandlerThread.start();
+        final Looper looper = mMainBTHandlerThread.getLooper();
+        mMainBTHandler = new Handler(looper);
 
         mTitle = mDrawerTitle = getTitle();
         mNavigationEntries = getResources().getStringArray(R.array.navigation_drawer_array);
@@ -120,11 +131,20 @@ public class MainActivity extends AppCompatActivity {
 
         if (savedInstanceState == null)
             selectItem(0);
+
+        Communication.getInstance().connect(mBluetoothDevice);
     }
 
     @Override
     protected void onDestroy() {
         Communication.getInstance().disconnect();
+
+        if (mMainBTHandlerThread != null) {
+            Thread stopThread = mMainBTHandlerThread;
+            mMainBTHandlerThread = null;
+            stopThread.interrupt();
+        }
+
         super.onDestroy();
     }
 
@@ -133,7 +153,6 @@ public class MainActivity extends AppCompatActivity {
         public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
             selectItem(i);
         }
-
     }
 
     private void selectItem(int position) {
@@ -141,16 +160,13 @@ public class MainActivity extends AppCompatActivity {
         Fragment fragment;
         switch (position) {
             case 0:
-                fragment = new TerminalFragment();
-                break;
-            case 1:
                 fragment = new SettingsFragment();
                 break;
-            case 2:
+            case 1:
                 fragment = new LightsFragment();
                 break;
             default:
-                fragment = new TerminalFragment();
+                fragment = new SettingsFragment();
                 break;
         }
 
@@ -186,10 +202,38 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    public void onBackPressed() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.alertDialog_Title);
+        builder.setMessage(R.string.alertDialog_msgMainActivity);
+
+        builder.setPositiveButton("YES", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i)
+            {
+                dialogInterface.dismiss();
+                MainActivity.super.onBackPressed();
+            }
+        });
+
+        builder.setNegativeButton("NO", new DialogInterface.OnClickListener()
+        {
+            @Override
+            public void onClick(DialogInterface dialogInterface, int i)
+            {
+                dialogInterface.dismiss();
+            }
+        });
+        AlertDialog alert = builder.create();
+        alert.show();
+
+    }
+
+    @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         // Pass any configuration change to the drawer toggles
         mDrawerToggle.onConfigurationChanged(newConfig);
     }
-
 }

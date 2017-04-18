@@ -18,7 +18,6 @@ import java.util.Calendar;
 
 import static com.christo.bluetoothplayground.Packet.TAG.BT_HOURS;
 
-
 public class SettingsFragment extends Fragment {
 
     private Context mContext;
@@ -27,74 +26,34 @@ public class SettingsFragment extends Fragment {
     private TextView textViewTime;
     private TimePicker mTimePicker;
 
+    private Handler mBTHandler;
+
     private Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
             if (message.obj == null)
                 return false;
 
-            if (message.arg1 == Communication.HANDLER_ARG1_CONNECT && "disconnect".equals((String) message.obj)) {
-                Toast.makeText(mContext, "Device disconnected.", Toast.LENGTH_SHORT).show();
-                getActivity().finish();
-                return false;
-            }
+            if (message.arg1 == Communication.HANDLER_ARG1_CONNECT) {
+                if (MainActivity.loadingDialog.isShowing())
+                    MainActivity.loadingDialog.dismiss();
 
-            Log.i("Settings", Utilities.byteArrayToHex((byte[]) message.obj));
-            Packet packet = new Packet();
-            packet = packet.fromBytes((byte[]) message.obj);
-
-            if (packet != null) {
-                packet.dbgPrint();
-                if (packet.getType() == Packet.TYPE.TYPE_SET)
-                {
-                    switch (packet.getTag()) {
-                        case BT_HOURS:
-                            updateTime(packet.getTag(), (int) packet.getData());
-                            break;
-                        case BT_MINUTES:
-                            updateTime(packet.getTag(), (int) packet.getData());
-                            break;
-                        case BT_SECONDS:
-                            updateTime(packet.getTag(), (int) packet.getData());
-                            break;
-                        case BT_ALARM_HOUR:
-                            mTimePicker.setCurrentHour((int) packet.getData());
-                            break;
-                        case BT_ALARM_MINUTE:
-                            mTimePicker.setCurrentMinute((int) packet.getData());
-                            break;
-                    }
+                if ("connected".equals((String) message.obj)) {
+                    Toast.makeText(mContext, "Connected.", Toast.LENGTH_SHORT).show();
+                    return false;
                 }
 
+                if ("disconnect".equals((String) message.obj)) {
+                    Toast.makeText(mContext, "Device disconnected.", Toast.LENGTH_SHORT).show();
+//                    getActivity().finish();
+                    return false;
+                }
             }
-
-
             return false;
         }
     });
 
-    private void updateTime(Packet.TAG tag, int value)
-    {
-        CharSequence charSequence = textViewTime.getText();
-        String strings[] = charSequence.toString().split(":");
 
-        if (strings.length != 3)
-            strings = new String[3];
-
-        switch (tag)
-        {
-            case BT_HOURS:
-                strings[0] = String.valueOf(value);
-                break;
-            case BT_MINUTES:
-                strings[1] = String.valueOf(value);
-                break;
-            case BT_SECONDS:
-                strings[2] = String.valueOf(value);
-                break;
-        }
-        textViewTime.setText(strings[0] + ":" + strings[1] + ":" + strings[2]);
-    }
 
     public SettingsFragment() {
         // Required empty public constructor
@@ -102,18 +61,25 @@ public class SettingsFragment extends Fragment {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        MainActivity.setHandler(mHandler);
+        mBTHandler = MainActivity.getMainBTHandler();
         super.onCreate(savedInstanceState);
+    }
 
+    @Override
+    public void onDestroy() {
+
+        super.onDestroy();
     }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
+
         mView = inflater.inflate(R.layout.fragment_settings, container, false);
 
         setHasOptionsMenu(true);
         mContext = mView.getContext();
-        Communication.getInstance().setCurrentHandler(mHandler, Communication.HANDLER_ARG1_SETTINGS);
 
         textViewTime = (TextView) mView.findViewById(R.id.textView_settings_time);
 
@@ -124,12 +90,7 @@ public class SettingsFragment extends Fragment {
         buttonGetTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_HOURS, (byte) 0x00);
-                Communication.getInstance().sendPacket(requestPacket);
-                requestPacket.setTag(Packet.TAG.BT_MINUTES);
-                Communication.getInstance().sendPacket(requestPacket);
-                requestPacket.setTag(Packet.TAG.BT_SECONDS);
-                Communication.getInstance().sendPacket(requestPacket);
+        requestTime();
             }
         });
 
@@ -137,7 +98,7 @@ public class SettingsFragment extends Fragment {
         buttonSetTime.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new Thread(new Runnable() {
+                mBTHandler.post(new Runnable() {
                     @Override
                     public void run() {
                         Packet packet = new Packet();
@@ -155,7 +116,7 @@ public class SettingsFragment extends Fragment {
                         packet.setData((byte) Calendar.getInstance().get(Calendar.SECOND));
                         Communication.getInstance().sendPacket(packet);
                     }
-                }).start();
+                });
             }
         });
 
@@ -164,10 +125,7 @@ public class SettingsFragment extends Fragment {
         btnGetAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_ALARM_HOUR, (byte) 0x00);
-                Communication.getInstance().sendPacket(requestPacket);
-                requestPacket.setTag(Packet.TAG.BT_ALARM_MINUTE);
-                Communication.getInstance().sendPacket(requestPacket);
+               requestAlarm();
             }
         });
 
@@ -183,18 +141,99 @@ public class SettingsFragment extends Fragment {
             }
         });
 
-        
-        Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_HOURS, (byte) 0x00);
-        Communication.getInstance().sendPacket(requestPacket);
-        requestPacket.setTag(Packet.TAG.BT_MINUTES);
-        Communication.getInstance().sendPacket(requestPacket);
-        requestPacket.setTag(Packet.TAG.BT_SECONDS);
-        Communication.getInstance().sendPacket(requestPacket);
-        requestPacket.setTag(Packet.TAG.BT_ALARM_HOUR);
-        Communication.getInstance().sendPacket(requestPacket);
-        requestPacket.setTag(Packet.TAG.BT_ALARM_MINUTE);
-        Communication.getInstance().sendPacket(requestPacket);
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (!Communication.getInstance().isConnected())
+                {
+                    Log.i("SettingsFragment", "waiting for connect");
+                    try {
+                        Thread.sleep(100);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+                requestTime();
+                requestAlarm();
+            }
+        }).start();
+
 
         return mView;
+    }
+
+    private void requestTime() {
+//        final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating Time", "Please wait...", true, false);
+
+        mBTHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                Packet.TAG tag = Packet.TAG.BT_HOURS;
+                updateTime(tag, Communication.getInstance().requestPacket(tag));
+
+                tag = Packet.TAG.BT_MINUTES;
+                updateTime(tag, Communication.getInstance().requestPacket(tag));
+
+                tag = Packet.TAG.BT_SECONDS;
+                updateTime(tag, Communication.getInstance().requestPacket(tag));
+
+//                progressDialog.dismiss();
+            }
+        });
+    }
+
+    private void updateTime(Packet.TAG tag, int value) {
+        CharSequence charSequence = textViewTime.getText();
+
+        final String strings[] = charSequence.toString().split(":");
+
+        if (strings.length != 3)
+            return;
+
+        switch (tag) {
+            case BT_HOURS:
+                strings[0] = String.valueOf(value);
+                break;
+            case BT_MINUTES:
+                strings[1] = String.valueOf(value);
+                break;
+            case BT_SECONDS:
+                strings[2] = String.valueOf(value);
+                break;
+        }
+        mView.post(new Runnable() {
+            @Override
+            public void run() {
+                textViewTime.setText(strings[0] + ":" + strings[1] + ":" + strings[2]);
+            }
+        });
+    }
+
+    private void requestAlarm()
+    {
+//        final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating Alarm", "Please wait...", true, false);
+
+        mBTHandler.post(new Runnable() {
+            @Override
+            public void run() {
+
+                Packet.TAG tag = Packet.TAG.BT_ALARM_HOUR;
+                final int hour = Communication.getInstance().requestPacket(tag);
+
+                tag = Packet.TAG.BT_ALARM_MINUTE;
+                final int minute = Communication.getInstance().requestPacket(tag);
+
+
+                mView.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        mTimePicker.setCurrentHour(hour);
+                        mTimePicker.setCurrentMinute(minute);
+                    }
+                });
+
+//                progressDialog.dismiss();
+            }
+        });
     }
 }

@@ -8,28 +8,21 @@ import android.util.Log;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 
-
 class Communication {
-
     private static Communication instance = new Communication();
-
     static Communication getInstance() {
         return instance;
     }
 
     private static final String TAG = Communication.class.getSimpleName();
-    private Handler mMainHandler;
-
-    private BluetoothThread mBluetoothThread;
-
+    static final int HANDLER_BT_MSG = 0;
     static final int HANDLER_ARG1_CONNECT = 1;
-    static final int HANDLER_ARG1_TERM = 2;
-    static final int HANDLER_ARG1_SETTINGS = 3;
 
-    private int mCurrArg1 = 0;
-    private Handler mCurrHandler;
-
-    private boolean mTerminalEnabled = false;
+    private boolean mConnected = false;
+    private BluetoothThread mBluetoothThread;
+    private final Object mWaitObject = new Object();
+    private Packet mPacket;
+    private Handler mMainHandler;
 
     private Communication() {
         mBluetoothThread = new BluetoothThread(mHandler);
@@ -40,10 +33,11 @@ class Communication {
         @Override
         public boolean handleMessage(Message msg) {
 
-            Log.i(TAG, "mCurrArg1: " + mCurrArg1);
-
             /* This checks that the device connected successfully */
             if (msg.arg1 == HANDLER_ARG1_CONNECT) {
+                if ("connected".equals(msg.obj))
+                    mConnected = true;
+
                 Message mainMessage = new Message();
                 mainMessage.arg1 = HANDLER_ARG1_CONNECT;
                 mainMessage.obj = msg.obj;
@@ -51,61 +45,62 @@ class Communication {
                 return false;
             }
 
-            byte[] data = (byte[]) msg.obj;
+            Log.i(TAG, "packet received.");
+            Packet packet = new Packet();
+            packet = packet.fromBytes((byte[]) msg.obj);
 
-            if (data.length > 0) {
-                switch (mCurrArg1) {
-                    case HANDLER_ARG1_TERM:
-                        Message termMessage = new Message();
-                        termMessage.obj = new String(data);
-                        termMessage.arg1 = HANDLER_ARG1_TERM;
-                        mCurrHandler.sendMessage(termMessage);
-                        break;
-
-                    case HANDLER_ARG1_SETTINGS:
-                        Message settingMessage = new Message();
-                        settingMessage.obj = data;
-                        settingMessage.arg1 = HANDLER_ARG1_SETTINGS;
-                        mCurrHandler.sendMessage(settingMessage);
-                }
+            if (packet == null) {
+                Log.e(TAG, "packet invalid CRC.");
+                return false;
             }
+
+            packet.dbgPrint();
+            mPacket = packet;
+            synchronized (mWaitObject) {
+                mWaitObject.notify();
+            }
+
             return false;
         }
     });
 
-    void setMainHandler(Handler mainHandler) {
-        this.mMainHandler = mainHandler;
-    }
-
-    public void setTerminalEnabled(boolean enabled) {
-        this.mTerminalEnabled = enabled;
-    }
-
-    public boolean isTerminalEnabled() {
-        return mTerminalEnabled;
-    }
-
-    void setCurrentHandler(Handler currentHandler, int currentArg1) {
-        this.mCurrHandler = currentHandler;
-        this.mCurrArg1 = currentArg1;
-    }
-
     void connect(BluetoothDevice bluetoothDevice) {
+        mMainHandler = MainActivity.getHandler();
         mBluetoothThread.connect(bluetoothDevice);
+    }
+
+    boolean isConnected() {
+        return mConnected;
     }
 
     void disconnect() {
         mBluetoothThread.disconnect();
     }
 
-    void write(final byte[] bytes) {
-        mBluetoothThread.sendPacket(bytes);
-    }
+    int requestPacket(final Packet.TAG tag) {
+        //blocking call
 
-    void requestPacket(Packet.TAG tag)
-    {
-        Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, tag, (byte) 0x00);
-        Communication.getInstance().sendPacket(requestPacket);
+        //try 10 times
+        for (int i = 0; i < 10; i++) {
+            Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, tag, (byte) 0x00);
+            Communication.getInstance().sendPacket(requestPacket);
+
+            synchronized (mWaitObject) {
+                try {
+                    mWaitObject.wait(1000);
+                } catch (InterruptedException e) {
+                    Log.e(TAG, "request packet: " + e);
+                }
+            }
+
+            if (mPacket != null && mPacket.getType() == Packet.TYPE.TYPE_SET && mPacket.getTag() == tag)
+                return Utilities.fromByte(mPacket.getData());
+
+            Log.w(TAG, "request failed, trying again..");
+        }
+        //failed 10 times
+        Log.w(TAG, "request failed 10 times...");
+        return -1;
     }
 
     void sendPacket(Packet packet) {

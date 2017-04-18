@@ -5,12 +5,10 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 import android.provider.Settings;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -20,7 +18,6 @@ import android.widget.ListView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-
 
 public class bluetoothActivity extends ListActivity
 {
@@ -35,7 +32,6 @@ public class bluetoothActivity extends ListActivity
     {
         super.onCreate(savedInstanceState);
 
-        BlueCommands blue = new BlueCommands();
         initBT();
 
         if (mBluetoothAdapter == null)
@@ -52,38 +48,6 @@ public class bluetoothActivity extends ListActivity
             startDiscovery();
         }
     }
-
-//    @Override
-//    public void onBackPressed()
-//    {
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle(R.string.alertDialog_Title);
-//        builder.setMessage(R.string.alertDialog_msgBluetoothActivity);
-//
-//        builder.setPositiveButton("YES", new DialogInterface.OnClickListener()
-//        {
-//            @Override
-//            public void onClick(DialogInterface dialogInterface, int i)
-//            {
-//                System.exit(0);
-//                onDestroy();
-//                onBackPressed();
-//                dialogInterface.dismiss();
-//            }
-//        });
-//
-//        builder.setNegativeButton("NO", new DialogInterface.OnClickListener()
-//        {
-//            @Override
-//            public void onClick(DialogInterface dialogInterface, int i)
-//            {
-//                dialogInterface.dismiss();
-//            }
-//        });
-//        AlertDialog alert = builder.create();
-//        alert.show();
-//    }
-
 
     @Override
     protected void onResume()
@@ -154,7 +118,6 @@ public class bluetoothActivity extends ListActivity
 
     private void initBT()
     {
-
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         btListAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, 0);
         btListDevices = new ArrayList<>();
@@ -246,12 +209,6 @@ public class bluetoothActivity extends ListActivity
         mBluetoothAdapter.startDiscovery();
     }
 
-    public void discoverDevices(View v)
-    {
-        startDiscovery();
-    }
-
-
     @Override
     protected void onListItemClick(ListView l, View v, int position, long id) {
         super.onListItemClick(l, v, position, id);
@@ -276,5 +233,4 @@ public class bluetoothActivity extends ListActivity
             Toast.makeText(getApplicationContext(), "Please pair: " + selectedBTDevice.getName(), Toast.LENGTH_LONG).show();
         }
     }
-
 }
