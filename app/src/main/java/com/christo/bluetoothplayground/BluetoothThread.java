@@ -25,13 +25,16 @@ class BluetoothThread {
     private BluetoothAdapter mBluetoothAdapter;
     private AtomicBoolean btConnected = new AtomicBoolean(false);
 
+    private Object mConnectObj;
+
     BluetoothThread(Handler handler) {
         mHandler = handler;
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         Log.i(TAG, "BluetoothThread()");
     }
 
-    void connect(BluetoothDevice mBTDevice) {
+    void connect(BluetoothDevice mBTDevice, final Object connectionObj) {
+        mConnectObj = connectionObj;
         /* Cancel any thread that is currently attempting to make a connection */
         if (mConnectThread != null) {
             mConnectThread.cancel();
@@ -47,6 +50,21 @@ class BluetoothThread {
         /* Start the thread to connect with the given device */
         mConnectThread = new ConnectThread(mBTDevice);
         mConnectThread.start();
+
+//        synchronized (mBTConnectObj) {
+//            try {
+//                mBTConnectObj.wait(10000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//        }
+
+//        if (!btConnected.get()) {
+//            Log.e(TAG, "disconnected");
+//            return false;
+//        }
+//        Log.w("TAG", "return true");
+//        return true;
     }
 
     private void connected(BluetoothSocket socket) {
@@ -62,6 +80,11 @@ class BluetoothThread {
         mConnectedThread = new ConnectedThread(socket);
         mConnectedThread.start();
         btConnected.set(true);
+        Communication.getInstance().setConnected(true);
+
+        synchronized (mConnectObj) {
+            mConnectObj.notify();
+        }
 
         Message msg = new Message();
         msg.obj = "connected";
@@ -138,18 +161,23 @@ class BluetoothThread {
                 mmSocket.connect();
             } catch (IOException e) {
                 Log.e(TAG, "disconnect", e);
+
                 try {
                     mmSocket.close();
                 } catch (IOException e2) {
                     Log.e(TAG, "unable to close() socket during connection failure", e2);
                 }
-                Message msg = new Message();
-                msg.obj = "failed";
-                msg.arg1 = Communication.HANDLER_ARG1_CONNECT;
-                mHandler.sendMessage(msg);
+//                Message msg = new Message();
+//                msg.obj = "failed";
+//                msg.arg1 = Communication.HANDLER_ARG1_CONNECT;
+//                mHandler.sendMessage(msg);
+//                synchronized (mBTConnectObj) {
+//                    mBTConnectObj.notify();
+//                }
                 return;
             }
             connected(mmSocket);
+
         }
 
         void cancel() {

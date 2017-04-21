@@ -5,6 +5,14 @@
         android:checkable="false"
         android:orderInCategory="1"
         android:showAsAction="ifRoom"/>
+
+    <item
+        android:id="@+id/menu_autoConnect"
+        android:checkable="true"
+        android:icon="@android:drawable/stat_notify_sync_noanim"
+        android:orderInCategory="99"
+        android:showAsAction="ifRoom"/>
+
     <item
         android:id="@+id/menu_scan"
         android:title="Scan"

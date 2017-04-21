@@ -36,7 +36,10 @@ class Communication {
             /* This checks that the device connected successfully */
             if (msg.arg1 == HANDLER_ARG1_CONNECT) {
                 if ("connected".equals(msg.obj))
+                {
                     mConnected = true;
+
+                }
 
                 Message mainMessage = new Message();
                 mainMessage.arg1 = HANDLER_ARG1_CONNECT;
@@ -64,9 +67,14 @@ class Communication {
         }
     });
 
-    void connect(BluetoothDevice bluetoothDevice) {
+    void connect(BluetoothDevice bluetoothDevice, Object waitObject) {
         mMainHandler = MainActivity.getHandler();
-        mBluetoothThread.connect(bluetoothDevice);
+        mBluetoothThread.connect(bluetoothDevice, waitObject);
+
+    }
+
+    void setConnected(boolean mConnected) {
+        this.mConnected = mConnected;
     }
 
     boolean isConnected() {
@@ -75,6 +83,7 @@ class Communication {
 
     void disconnect() {
         mBluetoothThread.disconnect();
+        mConnected = false;
     }
 
     int requestPacket(final Packet.TAG tag) {

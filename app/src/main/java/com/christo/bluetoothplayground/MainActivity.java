@@ -38,15 +38,10 @@ public class MainActivity extends AppCompatActivity {
     private HandlerThread mMainBTHandlerThread = null;
     private static Handler mMainBTHandler;
 
-    static ProgressDialog loadingDialog = null;
-
-
     private static Handler  mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
             if (message.arg1 == Communication.HANDLER_ARG1_CONNECT) {
-                if (loadingDialog != null && loadingDialog.isShowing())
-                    loadingDialog.dismiss();
 
 //                if ("connected".equals((String) message.obj)) {
 ////                    Toast.makeText(, "Connected.", Toast.LENGTH_SHORT).show();
@@ -80,9 +75,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        loadingDialog = ProgressDialog.show(this, "Connecting", "Please wait...", true, false);
-
-        final BluetoothDevice mBluetoothDevice = getIntent().getExtras().getParcelable("btDevice");
+//        final BluetoothDevice mBluetoothDevice = getIntent().getExtras().getParcelable("btDevice");
 
         mMainBTHandlerThread = new HandlerThread("mainBTThread");
         mMainBTHandlerThread.start();
@@ -132,7 +125,6 @@ public class MainActivity extends AppCompatActivity {
         if (savedInstanceState == null)
             selectItem(0);
 
-        Communication.getInstance().connect(mBluetoothDevice);
     }
 
     @Override

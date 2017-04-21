@@ -1,8 +1,10 @@
 package com.christo.bluetoothplayground;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -35,8 +37,6 @@ public class SettingsFragment extends Fragment {
                 return false;
 
             if (message.arg1 == Communication.HANDLER_ARG1_CONNECT) {
-                if (MainActivity.loadingDialog.isShowing())
-                    MainActivity.loadingDialog.dismiss();
 
                 if ("connected".equals((String) message.obj)) {
                     Toast.makeText(mContext, "Connected.", Toast.LENGTH_SHORT).show();
@@ -141,29 +141,14 @@ public class SettingsFragment extends Fragment {
             }
         });
 
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                while (!Communication.getInstance().isConnected())
-                {
-                    Log.i("SettingsFragment", "waiting for connect");
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-                requestTime();
-                requestAlarm();
-            }
-        }).start();
 
-
+        requestTime();
+        requestAlarm();
         return mView;
     }
 
     private void requestTime() {
-//        final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating Time", "Please wait...", true, false);
+        final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating Time", "Please wait...", true, false);
 
         mBTHandler.post(new Runnable() {
             @Override
@@ -177,7 +162,7 @@ public class SettingsFragment extends Fragment {
                 tag = Packet.TAG.BT_SECONDS;
                 updateTime(tag, Communication.getInstance().requestPacket(tag));
 
-//                progressDialog.dismiss();
+                progressDialog.dismiss();
             }
         });
     }
@@ -211,7 +196,7 @@ public class SettingsFragment extends Fragment {
 
     private void requestAlarm()
     {
-//        final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating Alarm", "Please wait...", true, false);
+        final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating Alarm", "Please wait...", true, false);
 
         mBTHandler.post(new Runnable() {
             @Override
@@ -232,7 +217,7 @@ public class SettingsFragment extends Fragment {
                     }
                 });
 
-//                progressDialog.dismiss();
+                progressDialog.dismiss();
             }
         });
     }
