@@ -21,7 +21,6 @@ class Communication {
     private boolean mConnected = false;
     private BluetoothThread mBluetoothThread;
     private final Object mWaitObject = new Object();
-    private Packet mPacket;
     private Handler mMainHandler;
     private Framer framer = new Framer();
     private byte[] mData;
@@ -59,24 +58,11 @@ class Communication {
 
                 Log.i(TAG, "HDLC data ready - hex: " + Utilities.byteArrayToHex(mData));
                 Log.i(TAG, "HDLC data len: " + mData.length);
+
+                synchronized (mWaitObject) {
+                    mWaitObject.notify();
+                }
             }
-
-
-//            Log.i(TAG, "packet received.");
-//            Packet packet = new Packet();
-//            packet = packet.fromBytes((byte[]) msg.obj);
-//
-//            if (packet == null) {
-//                Log.e(TAG, "packet invalid CRC.");
-//                return false;
-//            }
-
-//            packet.dbgPrint();
-//            mPacket = packet;
-            synchronized (mWaitObject) {
-                mWaitObject.notify();
-            }
-
             return false;
         }
     });
@@ -100,24 +86,20 @@ class Communication {
         mConnected = false;
     }
 
-    void framerTry()
+    void sendFramedData(byte[] data)
     {
-//        Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_HOURS, (byte) 0x00);
-//        Communication.getInstance().sendPacket(requestPacket);
         Framer framer = new Framer();
-        byte[] bytes = {0x07,0x07,0x07,0x07};
-
-        mBluetoothThread.sendPacket(framer.frameCreate(bytes));
+        mBluetoothThread.sendPacket(framer.frameCreate(data));
     }
 
-
-    int requestPacket(final Packet.TAG tag) {
+    int requestPacket(final cMsg.TAG tag, final int data0) {
         //blocking call
 
         //try 10 times
         for (int i = 0; i < 10; i++) {
-            Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, tag, (byte) 0x00);
-            Communication.getInstance().sendPacket(requestPacket);
+            cMsg requestMessage = new cMsg(cMsg.TYPE.TYPE_GET, tag, (byte)data0, (byte)0);
+//            Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, tag, (byte) 0x00);
+            Communication.getInstance().sendFramedData(requestMessage.toBytes());
 
             synchronized (mWaitObject) {
                 try {
@@ -127,10 +109,11 @@ class Communication {
                 }
             }
 
-            if (mPacket != null && mPacket.getType() == Packet.TYPE.TYPE_SET && mPacket.getTag() == tag)
-                return Utilities.fromByte(mPacket.getData());
+            if (mData == null)
+                continue;
 
-            Log.w(TAG, "request failed, trying again..");
+            cMsg cmsgOut = new cMsg(mData);
+            return Utilities.fromByte(cmsgOut.getData1());
         }
         //failed 10 times
         Log.w(TAG, "request failed 10 times...");

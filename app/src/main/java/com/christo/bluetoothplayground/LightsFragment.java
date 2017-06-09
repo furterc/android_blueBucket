@@ -94,29 +94,24 @@ public class LightsFragment extends Fragment {
         mBTHandler.post(new Runnable() {
             @Override
             public void run() {
-                Packet.TAG tag = Packet.TAG.BT_KITCH_TOP;
-                updateLights(tag, Communication.getInstance().requestPacket(tag));
+                cMsg.TAG tag = cMsg.TAG.TAG_LED_KITCHEN;
+                updateLights(0, Communication.getInstance().requestPacket(tag, 0));
+                updateLights(1, Communication.getInstance().requestPacket(tag, 1));
 
-                tag = Packet.TAG.BT_KITCH_BOT;
-                updateLights(tag, Communication.getInstance().requestPacket(tag));
-
-                tag = Packet.TAG.BT_STUDY_BOT;
-                updateLights(tag, Communication.getInstance().requestPacket(tag));
-
-                tag = Packet.TAG.BT_STUDY_TOP;
-                updateLights(tag, Communication.getInstance().requestPacket(tag));
+                tag = cMsg.TAG.TAG_LED_STUDY;
+                updateLights(2, Communication.getInstance().requestPacket(tag, 0));
+                updateLights(3, Communication.getInstance().requestPacket(tag, 0));
 
                 progressDialog.dismiss();
             }
         });
     }
 
-    public void updateLights(final Packet.TAG tag, final int duty)
+    public void updateLights(final int i, final int duty)
     {
         mView.post(new Runnable() {
             @Override
             public void run() {
-                int i = tag.ordinal() - 3;
                 mLightsArrayList.get(i).setDuty(duty);
                 mListAdapter.notifyDataSetChanged();
             }

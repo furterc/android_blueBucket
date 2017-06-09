@@ -1,12 +1,16 @@
 package com.christo.bluetoothplayground;
 
+import android.app.NotificationManager;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.NotificationCompat;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,6 +22,7 @@ import android.widget.Toast;
 
 import java.util.Calendar;
 
+import static android.content.Context.NOTIFICATION_SERVICE;
 import static com.christo.bluetoothplayground.Packet.TAG.BT_HOURS;
 
 public class SettingsFragment extends Fragment {
@@ -101,20 +106,26 @@ public class SettingsFragment extends Fragment {
                 mBTHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        Packet packet = new Packet();
-                        packet.setType(Packet.TYPE.TYPE_SET);
+                        cMsg cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 0, Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
+                        Communication.getInstance().sendFramedData(cmsg.toBytes());
 
-                        packet.setTag(BT_HOURS);
-                        packet.setData((byte) Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
-                        Communication.getInstance().sendPacket(packet);
+                        try {
+                            Thread.sleep(150);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
 
-                        packet.setTag(Packet.TAG.BT_MINUTES);
-                        packet.setData((byte) Calendar.getInstance().get(Calendar.MINUTE));
-                        Communication.getInstance().sendPacket(packet);
+                        cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 1, Calendar.getInstance().get(Calendar.MINUTE));
+                        Communication.getInstance().sendFramedData(cmsg.toBytes());
 
-                        packet.setTag(Packet.TAG.BT_SECONDS);
-                        packet.setData((byte) Calendar.getInstance().get(Calendar.SECOND));
-                        Communication.getInstance().sendPacket(packet);
+                        try {
+                            Thread.sleep(150);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+
+                        cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 2, Calendar.getInstance().get(Calendar.SECOND));
+                        Communication.getInstance().sendFramedData(cmsg.toBytes());
                     }
                 });
             }
@@ -133,11 +144,18 @@ public class SettingsFragment extends Fragment {
         btnSetAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Packet p = new Packet(Packet.TYPE.TYPE_SET, Packet.TAG.BT_ALARM_HOUR, Integer.valueOf(mTimePicker.getCurrentHour().toString()));
-                Communication.getInstance().sendPacket(p);
+                cMsg cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_ALARM, 0, Integer.valueOf(mTimePicker.getCurrentHour().toString()));
+                Communication.getInstance().sendFramedData(cmsg.toBytes());
 
-                p = new Packet(Packet.TYPE.TYPE_SET, Packet.TAG.BT_ALARM_MINUTE, Integer.valueOf(mTimePicker.getCurrentMinute().toString()));
-                Communication.getInstance().sendPacket(p);
+                try {
+                    Thread.sleep(150);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+                cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_ALARM, 1, Integer.valueOf(mTimePicker.getCurrentMinute().toString()));
+                Communication.getInstance().sendFramedData(cmsg.toBytes());
+
             }
         });
 
@@ -145,13 +163,30 @@ public class SettingsFragment extends Fragment {
         btnTryA.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Communication.getInstance().framerTry();
+
+                Bitmap icon = BitmapFactory.decodeResource(mContext.getResources(),
+                        R.drawable.kfc_bucket);
+                NotificationCompat.Builder mBuilder =
+                        new NotificationCompat.Builder(mContext)
+                                .setSmallIcon(R.drawable.kfc_bucket)
+                                .setLargeIcon(icon)
+                                .setContentTitle("My notification")
+                                .setContentText("Hello World!");
+
+// Sets an ID for the notification
+                int mNotificationId = 001;
+// Gets an instance of the NotificationManager service
+                NotificationManager mNotifyMgr =
+                        (NotificationManager) mContext.getSystemService(NOTIFICATION_SERVICE);
+// Builds the notification and issues it.
+                mNotifyMgr.notify(mNotificationId, mBuilder.build());
+
             }
         });
 
 
-//        requestTime();
-//        requestAlarm();
+        requestTime();
+        requestAlarm();
         return mView;
     }
 
@@ -161,21 +196,17 @@ public class SettingsFragment extends Fragment {
         mBTHandler.post(new Runnable() {
             @Override
             public void run() {
-                Packet.TAG tag = Packet.TAG.BT_HOURS;
-                updateTime(tag, Communication.getInstance().requestPacket(tag));
-
-                tag = Packet.TAG.BT_MINUTES;
-                updateTime(tag, Communication.getInstance().requestPacket(tag));
-
-                tag = Packet.TAG.BT_SECONDS;
-                updateTime(tag, Communication.getInstance().requestPacket(tag));
+                cMsg.TAG tag = cMsg.TAG.TAG_TIME;
+                updateTime(0, Communication.getInstance().requestPacket(tag, 0));
+                updateTime(1, Communication.getInstance().requestPacket(tag, 1));
+                updateTime(2, Communication.getInstance().requestPacket(tag, 2));
 
                 progressDialog.dismiss();
             }
         });
     }
 
-    private void updateTime(Packet.TAG tag, int value) {
+    private void updateTime(int data0, int value) {
         CharSequence charSequence = textViewTime.getText();
 
         final String strings[] = charSequence.toString().split(":");
@@ -183,21 +214,12 @@ public class SettingsFragment extends Fragment {
         if (strings.length != 3)
             return;
 
-        switch (tag) {
-            case BT_HOURS:
-                strings[0] = String.valueOf(value);
-                break;
-            case BT_MINUTES:
-                strings[1] = String.valueOf(value);
-                break;
-            case BT_SECONDS:
-                strings[2] = String.valueOf(value);
-                break;
-        }
+        strings[data0] = String.valueOf(value);
+
         mView.post(new Runnable() {
             @Override
             public void run() {
-                textViewTime.setText(strings[0] + ":" + strings[1] + ":" + strings[2]);
+                textViewTime.setText(String.format("%2s:%2s:%2s",strings[0],strings[1],strings[2]));
             }
         });
     }
@@ -209,12 +231,9 @@ public class SettingsFragment extends Fragment {
         mBTHandler.post(new Runnable() {
             @Override
             public void run() {
-
-                Packet.TAG tag = Packet.TAG.BT_ALARM_HOUR;
-                final int hour = Communication.getInstance().requestPacket(tag);
-
-                tag = Packet.TAG.BT_ALARM_MINUTE;
-                final int minute = Communication.getInstance().requestPacket(tag);
+                cMsg.TAG tag = cMsg.TAG.TAG_ALARM;
+                final int hour = Communication.getInstance().requestPacket(tag, 0);
+                final int minute = Communication.getInstance().requestPacket(tag, 1);
 
 
                 mView.post(new Runnable() {

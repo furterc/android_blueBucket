@@ -7,27 +7,31 @@ class LightsClass {
 
     void update(int light, int val) {
         mDuty = val;
-        Packet packet = new Packet();
-        packet.setType(Packet.TYPE.TYPE_SET);
-        packet.setData((byte) val);
+        cMsg msg = new cMsg();
+        msg.setType(cMsg.TYPE.TYPE_SET);
+        msg.setData1((byte) val);
         switch (light) {
             case 0:
-                packet.setTag(Packet.TAG.BT_KITCH_TOP);
+                msg.setTag(cMsg.TAG.TAG_LED_KITCHEN);
+                msg.setData0((byte)0);
                 break;
             case 1:
-                packet.setTag(Packet.TAG.BT_KITCH_BOT);
+                msg.setTag(cMsg.TAG.TAG_LED_KITCHEN);
+                msg.setData0((byte)1);
                 break;
             case 2:
-                packet.setTag(Packet.TAG.BT_STUDY_TOP);
+                msg.setTag(cMsg.TAG.TAG_LED_STUDY);
+                msg.setData0((byte)0);
                 break;
             case 3:
-                packet.setTag(Packet.TAG.BT_STUDY_BOT);
+                msg.setTag(cMsg.TAG.TAG_LED_STUDY);
+                msg.setData0((byte)1);
                 break;
             default:
                 break;
         }
 
-        Communication.getInstance().sendPacket(packet);
+        Communication.getInstance().sendFramedData(msg.toBytes());
     }
 
     LightsClass(String name) {
