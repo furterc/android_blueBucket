@@ -104,4 +104,10 @@
         android:layout_height="1dp"
         android:background="@android:color/darker_gray" />
 
+
+    <Button
+        android:id="@+id/btnTry"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="try"/>
 </LinearLayout>

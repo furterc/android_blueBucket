@@ -50,21 +50,6 @@ class BluetoothThread {
         /* Start the thread to connect with the given device */
         mConnectThread = new ConnectThread(mBTDevice);
         mConnectThread.start();
-
-//        synchronized (mBTConnectObj) {
-//            try {
-//                mBTConnectObj.wait(10000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//        }
-
-//        if (!btConnected.get()) {
-//            Log.e(TAG, "disconnected");
-//            return false;
-//        }
-//        Log.w("TAG", "return true");
-//        return true;
     }
 
     private void connected(BluetoothSocket socket) {
@@ -247,39 +232,30 @@ class BluetoothThread {
         }
 
         public void run() {
-            Log.i(TAG, "mConnectedThread run()");
-
-            ArrayList<Byte> byteList = new ArrayList<>();
-
-            byte[] buffer = new byte[1024];
+            Log.i(TAG, "mConnectedThread run() - receive Thread");
+            byte[] buffer = new byte[8];
 
             while (btConnected.get()) {
                 try {
                     /* Read the InputStream into buffer */
                     final int read = mmInStream.read(buffer, 0, 1);
-                    if (buffer[0] != 0x0D) {
-                        byteList.add(buffer[0]);
-                    } else {
-                        byte[] outBytes = new byte[byteList.size()];
 
-                        for (int tel = 0; tel < byteList.size(); tel++)
-                            outBytes[tel] = byteList.get(tel);
+                    byte data = buffer[0];
 
-                        byteList.clear();
-                        Message msg = new Message();
-                        msg.obj = outBytes;
-                        msg.arg1 = Communication.HANDLER_BT_MSG;
-                        mHandler.sendMessage(msg);
+                    Message msg = new Message();
+                    msg.obj = data;
+                    msg.arg1 = Communication.HANDLER_BT_MSG;
+                    mHandler.sendMessage(msg);
 
-                        Log.i(TAG, "bt_valid_data: " + new String(outBytes) + " hex: " + Utilities.byteArrayToHex(outBytes));
-                    }
                 } catch (IOException e) {
+                    e.printStackTrace();
                     Log.e(TAG, "disconnected", e);
                     disconnect();
                     break;
                 }
             }
         }
+
 
         void write(byte[] buffer) {
             mmSendList.add(buffer);

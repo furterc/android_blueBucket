@@ -141,9 +141,17 @@ public class SettingsFragment extends Fragment {
             }
         });
 
+        final Button btnTryA = (Button) mView.findViewById(R.id.btnTry);
+        btnTryA.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Communication.getInstance().framerTry();
+            }
+        });
 
-        requestTime();
-        requestAlarm();
+
+//        requestTime();
+//        requestAlarm();
         return mView;
     }
 

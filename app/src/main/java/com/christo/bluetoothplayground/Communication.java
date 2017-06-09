@@ -23,6 +23,8 @@ class Communication {
     private final Object mWaitObject = new Object();
     private Packet mPacket;
     private Handler mMainHandler;
+    private Framer framer = new Framer();
+    private byte[] mData;
 
     private Communication() {
         mBluetoothThread = new BluetoothThread(mHandler);
@@ -48,17 +50,29 @@ class Communication {
                 return false;
             }
 
-            Log.i(TAG, "packet received.");
-            Packet packet = new Packet();
-            packet = packet.fromBytes((byte[]) msg.obj);
+            byte data = (byte) msg.obj;
+//            Log.i(TAG, String.format("bt_byte: 0x%02X", data));
 
-            if (packet == null) {
-                Log.e(TAG, "packet invalid CRC.");
-                return false;
+            if (framer.rxData(data)) {
+                //data ready
+                mData = framer.getFrame();
+
+                Log.i(TAG, "HDLC data ready - hex: " + Utilities.byteArrayToHex(mData));
+                Log.i(TAG, "HDLC data len: " + mData.length);
             }
 
-            packet.dbgPrint();
-            mPacket = packet;
+
+//            Log.i(TAG, "packet received.");
+//            Packet packet = new Packet();
+//            packet = packet.fromBytes((byte[]) msg.obj);
+//
+//            if (packet == null) {
+//                Log.e(TAG, "packet invalid CRC.");
+//                return false;
+//            }
+
+//            packet.dbgPrint();
+//            mPacket = packet;
             synchronized (mWaitObject) {
                 mWaitObject.notify();
             }
@@ -85,6 +99,17 @@ class Communication {
         mBluetoothThread.disconnect();
         mConnected = false;
     }
+
+    void framerTry()
+    {
+//        Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, Packet.TAG.BT_HOURS, (byte) 0x00);
+//        Communication.getInstance().sendPacket(requestPacket);
+        Framer framer = new Framer();
+        byte[] bytes = {0x07,0x07,0x07,0x07};
+
+        mBluetoothThread.sendPacket(framer.frameCreate(bytes));
+    }
+
 
     int requestPacket(final Packet.TAG tag) {
         //blocking call
