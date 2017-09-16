@@ -152,13 +152,16 @@ public class MainActivity extends AppCompatActivity {
         Fragment fragment;
         switch (position) {
             case 0:
-                fragment = new SettingsFragment();
+                fragment = new HomeFragment();
                 break;
             case 1:
+                fragment = new SettingsFragment();
+                break;
+            case 2:
                 fragment = new LightsFragment();
                 break;
             default:
-                fragment = new SettingsFragment();
+                fragment = new HomeFragment();
                 break;
         }
 

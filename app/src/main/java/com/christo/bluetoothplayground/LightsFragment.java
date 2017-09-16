@@ -100,7 +100,11 @@ public class LightsFragment extends Fragment {
 
                 tag = cMsg.TAG.TAG_LED_STUDY;
                 updateLights(2, Communication.getInstance().requestPacket(tag, 0));
-                updateLights(3, Communication.getInstance().requestPacket(tag, 0));
+                updateLights(3, Communication.getInstance().requestPacket(tag, 1));
+
+                tag = cMsg.TAG.TAG_LED_BED;
+                updateLights(4, Communication.getInstance().requestPacket(tag, 0));
+                updateLights(5, Communication.getInstance().requestPacket(tag, 1));
 
                 progressDialog.dismiss();
             }

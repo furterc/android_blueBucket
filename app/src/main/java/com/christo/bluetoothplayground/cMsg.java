@@ -7,16 +7,17 @@ import android.util.Log;
  */
 
 public class cMsg {
-    static enum TYPE {
+    enum TYPE {
         TYPE_GET,
         TYPE_SET
     }
 
-    static enum TAG {
+    enum TAG {
         TAG_TIME,
         TAG_ALARM,
         TAG_LED_KITCHEN,
-        TAG_LED_STUDY
+        TAG_LED_STUDY,
+        TAG_LED_BED
     }
 
     private byte mType;

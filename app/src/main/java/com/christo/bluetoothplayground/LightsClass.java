@@ -27,6 +27,22 @@ class LightsClass {
                 msg.setTag(cMsg.TAG.TAG_LED_STUDY);
                 msg.setData0((byte)1);
                 break;
+            case 4:
+                msg.setTag(cMsg.TAG.TAG_LED_BED);
+                msg.setData0((byte)0);
+                break;
+            case 5:
+                msg.setTag(cMsg.TAG.TAG_LED_BED);
+                msg.setData0((byte)1);
+                break;
+            case 6:
+                msg.setTag(cMsg.TAG.TAG_LED_BED);
+                msg.setData0((byte)2);
+                break;
+            case 7:
+                msg.setTag(cMsg.TAG.TAG_LED_BED);
+                msg.setData0((byte)3);
+                break;
             default:
                 break;
         }
