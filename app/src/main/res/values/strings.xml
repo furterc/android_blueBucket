@@ -23,9 +23,14 @@
     </string-array>
 
     <!-- Settings -->
-    <string name="textSettings_Time">Time:</string>
-    <string name="textSettings_TimeDefault">25:61:61</string>
-    <string name="textSettings_Alarm">Alarm:</string>
+    <string name="textSettings_Time">Time</string>
+    <string name="textSettings_TimeDefault">00:00</string>
+    <string name="textSettings_Alarm">Alarm</string>
+
+    <string name="textHome_Kitchen_Lights">Kitchen Lights</string>
+    <string name="textHome_Study_Lights">Study Lights</string>
+    <string name="textHome_Top">Top: </string>
+    <string name="textHome_Bot">Bot: </string>
 
 
     <string name="textSettings_Get">GET</string>

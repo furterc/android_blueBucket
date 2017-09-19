@@ -224,7 +224,7 @@ public class SettingsFragment extends Fragment {
         });
     }
 
-    private void requestAlarm()
+    private void    requestAlarm()
     {
         final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating Alarm", "Please wait...", true, false);
 
