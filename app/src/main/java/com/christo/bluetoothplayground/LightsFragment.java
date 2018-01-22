@@ -94,15 +94,15 @@ public class LightsFragment extends Fragment {
         mBTHandler.post(new Runnable() {
             @Override
             public void run() {
-                cMsg.TAG tag = cMsg.TAG.TAG_LED_KITCHEN;
+                TAG tag = TAG.TAG_LED_KITCHEN;
                 updateLights(0, Communication.getInstance().requestPacket(tag, 0));
                 updateLights(1, Communication.getInstance().requestPacket(tag, 1));
 
-                tag = cMsg.TAG.TAG_LED_STUDY;
+                tag = TAG.TAG_LED_STUDY;
                 updateLights(2, Communication.getInstance().requestPacket(tag, 0));
                 updateLights(3, Communication.getInstance().requestPacket(tag, 1));
 
-                tag = cMsg.TAG.TAG_LED_BED;
+                tag = TAG.TAG_LED_BED;
                 updateLights(4, Communication.getInstance().requestPacket(tag, 0));
                 updateLights(5, Communication.getInstance().requestPacket(tag, 1));
 

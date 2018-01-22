@@ -106,7 +106,7 @@ public class SettingsFragment extends Fragment {
                 mBTHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        cMsg cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 0, Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
+                        cMsg cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_TIME, 0, Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
                         Communication.getInstance().sendFramedData(cmsg.toBytes());
 
                         try {
@@ -115,7 +115,7 @@ public class SettingsFragment extends Fragment {
                             e.printStackTrace();
                         }
 
-                        cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 1, Calendar.getInstance().get(Calendar.MINUTE));
+                        cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_TIME, 1, Calendar.getInstance().get(Calendar.MINUTE));
                         Communication.getInstance().sendFramedData(cmsg.toBytes());
 
                         try {
@@ -124,7 +124,7 @@ public class SettingsFragment extends Fragment {
                             e.printStackTrace();
                         }
 
-                        cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 2, Calendar.getInstance().get(Calendar.SECOND));
+                        cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_TIME, 2, Calendar.getInstance().get(Calendar.SECOND));
                         Communication.getInstance().sendFramedData(cmsg.toBytes());
                     }
                 });
@@ -144,7 +144,7 @@ public class SettingsFragment extends Fragment {
         btnSetAlarm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                cMsg cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_ALARM, 0, Integer.valueOf(mTimePicker.getCurrentHour().toString()));
+                cMsg cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_ALARM, 0, Integer.valueOf(mTimePicker.getCurrentHour().toString()));
                 Communication.getInstance().sendFramedData(cmsg.toBytes());
 
                 try {
@@ -153,7 +153,7 @@ public class SettingsFragment extends Fragment {
                     e.printStackTrace();
                 }
 
-                cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_ALARM, 1, Integer.valueOf(mTimePicker.getCurrentMinute().toString()));
+                cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_ALARM, 1, Integer.valueOf(mTimePicker.getCurrentMinute().toString()));
                 Communication.getInstance().sendFramedData(cmsg.toBytes());
 
             }
@@ -196,7 +196,7 @@ public class SettingsFragment extends Fragment {
         mBTHandler.post(new Runnable() {
             @Override
             public void run() {
-                cMsg.TAG tag = cMsg.TAG.TAG_TIME;
+                TAG tag = TAG.TAG_TIME;
                 updateTime(0, Communication.getInstance().requestPacket(tag, 0));
                 updateTime(1, Communication.getInstance().requestPacket(tag, 1));
                 updateTime(2, Communication.getInstance().requestPacket(tag, 2));
@@ -231,7 +231,7 @@ public class SettingsFragment extends Fragment {
         mBTHandler.post(new Runnable() {
             @Override
             public void run() {
-                cMsg.TAG tag = cMsg.TAG.TAG_ALARM;
+                TAG tag = TAG.TAG_ALARM;
                 final int hour = Communication.getInstance().requestPacket(tag, 0);
                 final int minute = Communication.getInstance().requestPacket(tag, 1);
 

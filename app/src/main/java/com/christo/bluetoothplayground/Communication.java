@@ -92,12 +92,12 @@ class Communication {
         mBluetoothThread.sendPacket(framer.frameCreate(data));
     }
 
-    int requestPacket(final cMsg.TAG tag, final int data0) {
+    int requestPacket(final TAG tag, final int data0) {
         //blocking call
 
         //try 10 times
         for (int i = 0; i < 10; i++) {
-            cMsg requestMessage = new cMsg(cMsg.TYPE.TYPE_GET, tag, (byte)data0, (byte)0);
+            cMsg requestMessage = new cMsg(TYPE.TYPE_GET, tag, (byte)data0, (byte)0);
 //            Packet requestPacket = new Packet(Packet.TYPE.TYPE_GET, tag, (byte) 0x00);
             Communication.getInstance().sendFramedData(requestMessage.toBytes());
 

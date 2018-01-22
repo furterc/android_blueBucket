@@ -3,6 +3,7 @@ package com.christo.bluetoothplayground;
 import android.app.Dialog;
 import android.app.DialogFragment;
 import android.app.TimePickerDialog;
+import android.content.SharedPreferences;
 import android.provider.CalendarContract;
 import android.support.v4.app.Fragment;
 import android.app.ProgressDialog;
@@ -114,7 +115,7 @@ public class HomeFragment extends Fragment {
                 mBTHandler.post(new Runnable() {
                     @Override
                     public void run() {
-                        cMsg cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 0, Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
+                        cMsg cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_TIME, 0, Calendar.getInstance().get(Calendar.HOUR_OF_DAY));
                         Communication.getInstance().sendFramedData(cmsg.toBytes());
 
                         try {
@@ -123,7 +124,7 @@ public class HomeFragment extends Fragment {
                             e.printStackTrace();
                         }
 
-                        cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 1, Calendar.getInstance().get(Calendar.MINUTE));
+                        cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_TIME, 1, Calendar.getInstance().get(Calendar.MINUTE));
                         Communication.getInstance().sendFramedData(cmsg.toBytes());
 
                         try {
@@ -132,10 +133,10 @@ public class HomeFragment extends Fragment {
                             e.printStackTrace();
                         }
 
-                        cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_TIME, 2, Calendar.getInstance().get(Calendar.SECOND));
+                        cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_TIME, 2, Calendar.getInstance().get(Calendar.SECOND));
                         Communication.getInstance().sendFramedData(cmsg.toBytes());
 
-                        request(cMsg.TAG.TAG_TIME, textViewTime);
+                        request(TAG.TAG_TIME, textViewTime);
                     }
                 });
             }
@@ -172,7 +173,7 @@ public class HomeFragment extends Fragment {
                         mBTHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                cMsg cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_ALARM, 0, mHour);
+                                cMsg cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_ALARM, 0, mHour);
                                 Communication.getInstance().sendFramedData(cmsg.toBytes());
 
                                 try {
@@ -181,7 +182,7 @@ public class HomeFragment extends Fragment {
                                     e.printStackTrace();
                                 }
 
-                                cmsg = new cMsg(cMsg.TYPE.TYPE_SET, cMsg.TAG.TAG_ALARM, 1, mMinute);
+                                cmsg = new cMsg(TYPE.TYPE_SET, TAG.TAG_ALARM, 1, mMinute);
                                 Communication.getInstance().sendFramedData(cmsg.toBytes());
 
                                 try {
@@ -190,7 +191,7 @@ public class HomeFragment extends Fragment {
                                     e.printStackTrace();
                                 }
 
-                                request(cMsg.TAG.TAG_ALARM, textViewAlarm);
+                                request(TAG.TAG_ALARM, textViewAlarm);
                             }
                         });
                     }
@@ -204,8 +205,8 @@ public class HomeFragment extends Fragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 cMsg msg = new cMsg();
-                msg.setType(cMsg.TYPE.TYPE_SET);
-                msg.setTag(cMsg.TAG.TAG_LED_KITCHEN);
+                msg.setType(TYPE.TYPE_SET);
+                msg.setTag(TAG.TAG_LED_KITCHEN);
                 msg.setData1((byte) i);
                 msg.setData0((byte) 0);
                 Communication.getInstance().sendFramedData(msg.toBytes());
@@ -228,8 +229,8 @@ public class HomeFragment extends Fragment {
             @Override
             public void onProgressChanged(SeekBar seekBar, int i, boolean b) {
                 cMsg msg = new cMsg();
-                msg.setType(cMsg.TYPE.TYPE_SET);
-                msg.setTag(cMsg.TAG.TAG_LED_KITCHEN);
+                msg.setType(TYPE.TYPE_SET);
+                msg.setTag(TAG.TAG_LED_KITCHEN);
                 msg.setData1((byte) i);
                 msg.setData0((byte) 1);
                 Communication.getInstance().sendFramedData(msg.toBytes());
@@ -247,31 +248,40 @@ public class HomeFragment extends Fragment {
         });
 
 //        View v = mView.findViewById(R.id.include_kitchenTop1);
-        kitchenSetPoints[0] = new SetPointClass();
-        kitchenSetPoints[0].init(mView.findViewById(R.id.include_kitchenTop1), seekTop, seekBot);
+        int idx = 0;
+        kitchenSetPoints[idx] = new SetPointClass();
+        kitchenSetPoints[idx].init(mView.findViewById(R.id.include_kitchenTop1), seekTop, seekBot, idx);
 
-        kitchenSetPoints[1] = new SetPointClass();
-        kitchenSetPoints[1].init(mView.findViewById(R.id.include_kitchenTop2), seekTop, seekBot);
+        idx++;
 
-        kitchenSetPoints[2] = new SetPointClass();
-        kitchenSetPoints[2].init(mView.findViewById(R.id.include_kitchenTop3), seekTop, seekBot);
+        kitchenSetPoints[idx] = new SetPointClass();
+        kitchenSetPoints[idx].init(mView.findViewById(R.id.include_kitchenTop2), seekTop, seekBot,  idx);
 
-        kitchenSetPoints[3] = new SetPointClass();
-        kitchenSetPoints[3].init(mView.findViewById(R.id.include_kitchenTop4), seekTop, seekBot);
+        idx++;
 
-        kitchenSetPoints[4] = new SetPointClass();
-        kitchenSetPoints[4].init(mView.findViewById(R.id.include_kitchenTop5), seekTop, seekBot);
+        kitchenSetPoints[idx] = new SetPointClass();
+        kitchenSetPoints[idx].init(mView.findViewById(R.id.include_kitchenTop3), seekTop, seekBot, idx);
+
+        idx++;
+
+        kitchenSetPoints[idx] = new SetPointClass();
+        kitchenSetPoints[idx].init(mView.findViewById(R.id.include_kitchenTop4), seekTop, seekBot, idx);
+
+        idx++;
+
+        kitchenSetPoints[idx] = new SetPointClass();
+        kitchenSetPoints[idx].init(mView.findViewById(R.id.include_kitchenTop5), seekTop, seekBot, idx);
 
 
         return mView;
     }
 
     void requestData() {
-        request(cMsg.TAG.TAG_TIME, textViewTime);
-        request(cMsg.TAG.TAG_ALARM, textViewAlarm);
+        request(TAG.TAG_TIME, textViewTime);
+        request(TAG.TAG_ALARM, textViewAlarm);
     }
 
-    private void request(final cMsg.TAG tag, final TextView textView) {
+    private void request(final TAG tag, final TextView textView) {
         final ProgressDialog progressDialog = ProgressDialog.show(mContext, "Updating", "Please wait...", true, false);
 
         mBTHandler.post(new Runnable() {
@@ -325,6 +335,8 @@ public class HomeFragment extends Fragment {
 
     /*--- Set Point Class ------------------------------------------------------------------------*/
     private class SetPointClass {
+
+        private String PREFS_NAME = "kitchenSetPoints";
         private View mView;
 
         private TextView textViewTop;
@@ -333,12 +345,20 @@ public class HomeFragment extends Fragment {
         private SeekBar seekTop;
         private SeekBar seekBot;
 
+        private int mIndex;
         private int mTopValue;
         private int mBotValue;
 
         private AtomicBoolean mLongPressedBool = new AtomicBoolean(false);
 
         SetPointClass() {
+
+
+//            SharedPreferences settings = mContext.getSharedPreferences(PREFS_NAME, 0);
+//            SharedPreferences.Editor editor = settings.edit();
+//            editor.putBoolean("autoConnect", mAutoConnect);
+//            editor.apply();
+
 
         }
 
@@ -358,15 +378,21 @@ public class HomeFragment extends Fragment {
                 mLongPressedBool.set(true);
                 updateValues();
                 setText(mTopValue, mBotValue);
+                SharedPreferences settings = mContext.getSharedPreferences(PREFS_NAME, 0);
+                SharedPreferences.Editor editor = settings.edit();
+                editor.putInt("topVal" +  mIndex, mTopValue);
+                editor.putInt("botVal" +  mIndex, mBotValue);
+                editor.apply();
             }
         };
 
-        void init(View view, SeekBar sTop, SeekBar sBot) {
+        void init(View view, SeekBar sTop, SeekBar sBot, int index) {
             if (view == null || sTop == null || sBot == null)
                 return;
 
             seekTop = sTop;
             seekBot = sBot;
+            mIndex = index;
 
             textViewTop = (TextView) view.findViewById(R.id.textView_include_top);
             textViewBot = (TextView) view.findViewById(R.id.textView_include_bot);
@@ -394,11 +420,20 @@ public class HomeFragment extends Fragment {
                 }
             });
 
+            SharedPreferences settings = mContext.getSharedPreferences(PREFS_NAME, 0);
+            int top = settings.getInt("topVal" +  mIndex, 0);
+            int bot = settings.getInt("botVal" +  mIndex, 0);
+            setText(top, bot);
+
+
         }
 
         void setText(final int top, final int bot) {
             if (textViewTop == null || textViewBot == null)
                 return;
+
+            mTopValue = top;
+            mBotValue = bot;
 
             mView.post(new Runnable() {
                 @Override

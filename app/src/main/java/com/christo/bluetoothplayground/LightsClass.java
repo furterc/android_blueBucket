@@ -8,39 +8,39 @@ class LightsClass {
     void update(int light, int val) {
         mDuty = val;
         cMsg msg = new cMsg();
-        msg.setType(cMsg.TYPE.TYPE_SET);
+        msg.setType(TYPE.TYPE_SET);
         msg.setData1((byte) val);
         switch (light) {
             case 0:
-                msg.setTag(cMsg.TAG.TAG_LED_KITCHEN);
+                msg.setTag(TAG.TAG_LED_KITCHEN);
                 msg.setData0((byte)0);
                 break;
             case 1:
-                msg.setTag(cMsg.TAG.TAG_LED_KITCHEN);
+                msg.setTag(TAG.TAG_LED_KITCHEN);
                 msg.setData0((byte)1);
                 break;
             case 2:
-                msg.setTag(cMsg.TAG.TAG_LED_STUDY);
+                msg.setTag(TAG.TAG_LED_STUDY);
                 msg.setData0((byte)0);
                 break;
             case 3:
-                msg.setTag(cMsg.TAG.TAG_LED_STUDY);
+                msg.setTag(TAG.TAG_LED_STUDY);
                 msg.setData0((byte)1);
                 break;
             case 4:
-                msg.setTag(cMsg.TAG.TAG_LED_BED);
+                msg.setTag(TAG.TAG_LED_BED);
                 msg.setData0((byte)0);
                 break;
             case 5:
-                msg.setTag(cMsg.TAG.TAG_LED_BED);
+                msg.setTag(TAG.TAG_LED_BED);
                 msg.setData0((byte)1);
                 break;
             case 6:
-                msg.setTag(cMsg.TAG.TAG_LED_BED);
+                msg.setTag(TAG.TAG_LED_BED);
                 msg.setData0((byte)2);
                 break;
             case 7:
-                msg.setTag(cMsg.TAG.TAG_LED_BED);
+                msg.setTag(TAG.TAG_LED_BED);
                 msg.setData0((byte)3);
                 break;
             default:

@@ -5,20 +5,20 @@ import android.util.Log;
 /**
  * Created by christo on 2017/06/09.
  */
+enum TYPE {
+    TYPE_GET,
+    TYPE_SET
+}
 
-public class cMsg {
-    enum TYPE {
-        TYPE_GET,
-        TYPE_SET
-    }
+enum TAG {
+    TAG_TIME,
+    TAG_ALARM,
+    TAG_LED_KITCHEN,
+    TAG_LED_STUDY,
+    TAG_LED_BED
+}
 
-    enum TAG {
-        TAG_TIME,
-        TAG_ALARM,
-        TAG_LED_KITCHEN,
-        TAG_LED_STUDY,
-        TAG_LED_BED
-    }
+class cMsg {
 
     private byte mType;
     private byte mTag;
@@ -33,7 +33,7 @@ public class cMsg {
         mData1 = data[3];
     }
 
-    cMsg(cMsg.TYPE type, cMsg.TAG tag, byte data0, byte data1)
+    cMsg(TYPE type, TAG tag, byte data0, byte data1)
     {
         mType = (byte)type.ordinal();
         mTag = (byte)tag.ordinal();
@@ -41,7 +41,7 @@ public class cMsg {
         mData1 = data1;
     }
 
-    cMsg(cMsg.TYPE type, cMsg.TAG tag, int data0, int data1)
+    cMsg(TYPE type, TAG tag, int data0, int data1)
     {
         mType = (byte)type.ordinal();
         mTag = (byte)tag.ordinal();
@@ -57,15 +57,15 @@ public class cMsg {
         mData1 = 0;
     }
 
-    void setType(cMsg.TYPE type) {
+    void setType(TYPE type) {
         this.mType = (byte) type.ordinal();
     }
 
-    public cMsg.TYPE getType() {
-        return cMsg.TYPE.values()[(int) mType];
+    public TYPE getType() {
+        return TYPE.values()[(int) mType];
     }
 
-    void setTag(cMsg.TAG mTag) {
+    void setTag(TAG mTag) {
         this.mTag = (byte) mTag.ordinal();
     }
 
@@ -73,9 +73,9 @@ public class cMsg {
         return mTag;
     }
 
-    public cMsg.TAG getTag()
+    public TAG getTag()
     {
-        return cMsg.TAG.values()[(int) mTag];
+        return TAG.values()[(int) mTag];
     }
 
     public void setData(byte data0, byte data1) {
@@ -114,8 +114,7 @@ public class cMsg {
         return cMsg;
     }
 
-
-    void dbgPrint() {
+    private void dbgPrint() {
         Log.i("cMsg", String.format("type:\t0x%02X\ntag:\t0x%02X\ndata0:\t0x%02X\ndata1:\t0x%02X", mType, mTag, mData0, mData1));
     }
 }
